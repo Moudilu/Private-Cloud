@@ -1,0 +1,11 @@
+[Unit]
+Description=smartctl exporter service
+After=docker.service
+
+[Service]
+Type=simple
+ExecStart=docker run --user root -p 9633:9633 --pull=always --privileged prometheuscommunity/smartctl-exporter
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

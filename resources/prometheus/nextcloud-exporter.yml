@@ -1,0 +1,28 @@
+groups:
+- name: Nextcloud
+  rules:
+  - alert: Nextcloud App Update available
+    expr: nextcloud_apps_updates_available_total > 0
+    for: 1d
+    labels:
+      severity: warning
+    annotations:
+      summary: Nextcloud app update available
+      description: "There are {{ $value }} app updates available."
+  - alert: New Nextcloud User
+    expr: '( sum ( delta ( nextcloud_users_total[5m] ) ) > 0 )'
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: New Nextcloud user detected
+      description: "{{ $value }} new Nextcloud user detected on {{ $labels.instance }}. If this is expected, you can ignore this message."
+  - alert: Nextcloud down
+    expr: 'nextcloud_up!=1'
+    for: 1h
+    labels:
+      severity: critical
+    annotations:
+      summary: Nextcloud is not running
+      description: "Nextcloud on {{ $labels.instance }} is not reported to be up for at least one hour. If this is expected, you can ignore this message."
+# TODO: Rule to trigger when the metric is not available, e. g. when nextcloud is actually down...

@@ -1,0 +1,11 @@
+[Unit]
+Description=nextcloud exporter service
+After=docker.service
+
+[Service]
+Type=simple
+ExecStart=docker run --pull=always --env-file=/etc/prometheus-nextcloud-exporter.env -p 9205:9205 ghcr.io/xperimental/nextcloud-exporter:latest
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

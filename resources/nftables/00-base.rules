@@ -1,0 +1,28 @@
+table inet filter {
+        chain input {
+                type filter hook input priority filter; policy drop;
+                ip protocol tcp ct state established accept
+                ip protocol udp ct state established accept
+                ip protocol icmp ct state established accept
+        }
+
+        chain forward {
+                type filter hook forward priority filter; policy drop;
+                
+                # Allow outgoing traffic, initiated by docker containers
+                # This includes container-container and container-world traffic 
+                # (assuming interface name is docker0)
+                iifname "docker0" accept
+
+                # Allow incoming traffic from established connections
+                # This includes container-world traffic
+                ct state vmap { established: accept, related: accept, invalid: drop }
+        }
+
+        chain output {
+                type filter hook output priority filter; policy drop;
+                ip protocol tcp ct state established,related,new accept
+                ip protocol udp ct state established,related,new accept
+                ip protocol icmp ct state established,related,new accept
+        }
+}

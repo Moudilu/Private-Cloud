@@ -1,0 +1,6 @@
+table inet filter {
+        chain input {
+                # Append the filter rule to allow SSH traffic
+                tcp dport 22 accept
+        }
+}
