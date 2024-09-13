@@ -8,7 +8,7 @@ groups:
       severity: warning
     annotations:
       summary: Nextcloud app update available
-      description: "There are {{ $value }} app updates available."
+      description: "There are {{ $value }} app updates available.\n  LABELS = {{ $labels }}"
   - alert: New Nextcloud User
     expr: '( sum ( delta ( nextcloud_users_total[5m] ) ) > 0 )'
     for: 0m
@@ -16,13 +16,12 @@ groups:
       severity: warning
     annotations:
       summary: New Nextcloud user detected
-      description: "{{ $value }} new Nextcloud user detected on {{ $labels.instance }}. If this is expected, you can ignore this message."
+      description: "{{ $value }} new Nextcloud user detected on {{ $labels.instance }}. If this is expected, you can ignore this message.\n  LABELS = {{ $labels }}"
   - alert: Nextcloud down
-    expr: 'nextcloud_up!=1'
-    for: 1h
+    expr: 'nextcloud_up < 1'
+    for: 2h
     labels:
       severity: critical
     annotations:
       summary: Nextcloud is not running
-      description: "Nextcloud on {{ $labels.instance }} is not reported to be up for at least one hour. If this is expected, you can ignore this message."
-# TODO: Rule to trigger when the metric is not available, e. g. when nextcloud is actually down...
+      description: "Nextcloud on {{ $labels.instance }} is not reported to be up for at least two hours. If this is expected, you can ignore this message.\n  LABELS = {{ $labels }}"
