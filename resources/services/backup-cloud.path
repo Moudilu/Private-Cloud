@@ -1,0 +1,9 @@
+[Unit]
+Description=Nextcloud AIO backup lockfile watcher
+After=network.service
+
+[Path]
+PathChanged=/srv/nc-bkp/aio-lockfile
+
+[Install]
+WantedBy=multi-user.target

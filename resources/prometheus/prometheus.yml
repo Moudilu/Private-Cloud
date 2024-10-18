@@ -1,8 +1,8 @@
 # Sample config for Prometheus.
 
 global:
-  scrape_interval:     30s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
-  evaluation_interval: 30s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  # evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
   # scrape_timeout is set to the global default (10s).
 
   # Attach these labels to any time series or alerts when communicating with
@@ -46,3 +46,8 @@ scrape_configs:
     # From smartctl-exporter, gather data about drives
     static_configs:
       - targets: ['${HOSTNAME}:9633']
+
+# Additional scraping targets
+# This is only available somewhere between Prometheus version 2.31 & 2.54
+#scrape_config_files:
+#  - "/etc/prometheus/scrap_configs.d/*.yml"

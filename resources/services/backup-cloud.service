@@ -1,0 +1,15 @@
+[Unit]
+Description=Nextcloud-backup to cloud synchronisation
+After=network.service
+
+# Allow the service to start at most 5 times within 30 minutes
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+[Service]
+Type=exec
+ExecStart=/opt/private-cloud/scripts/backup-nc-bkp.sh remote-nc-bkp
+
+# If the backup fails, retry after five minutes
+Restart=on-failure
+RestartSec=300
