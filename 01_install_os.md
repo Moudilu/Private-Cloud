@@ -191,4 +191,10 @@ It is recommended to test this by setting the value to some value that will occu
 
 ## Reboot every week
 
-Edit root crontab with `sudo crontab -e`, add the line `0 5 * * 1 reboot`.
+Reboots the system every Sunday at 5am.
+
+```bash
+sudo install ./resources/services/reboot.timer /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable reboot.timer
+```
