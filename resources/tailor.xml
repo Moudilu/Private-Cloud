@@ -13,6 +13,8 @@
     <select idref="xccdf_org.ssgproject.content_rule_grub2_uefi_password" selected="false"/>
     <!--1.4.3 Ensure authentication required for single user mode (Automated)-->
     <select idref="xccdf_org.ssgproject.content_rule_ensure_root_password_configured" selected="false"/>
+    <!--1.1.10 Disable USB Storage (Automated)-->
+    <select idref="xccdf_org.ssgproject.content_rule_kernel_module_usb-storage_disabled" selected="false"/>
 
     <!--AIDE only makes sense if config and DB are stored an a different host. Also, it consumes quite some resources. Disable it.-->
     <!--1.3.1 Ensure AIDE is installed (Automated)-->
@@ -67,8 +69,6 @@
     <select idref="xccdf_org.ssgproject.content_rule_mount_option_dev_shm_nosuid" selected="true"/>
     <!--1.1.9 Disable Automounting (Automated)-->
     <select idref="xccdf_org.ssgproject.content_rule_service_autofs_disabled" selected="true"/>
-    <!--1.1.10 Disable USB Storage (Automated)-->
-    <select idref="xccdf_org.ssgproject.content_rule_kernel_module_usb-storage_disabled" selected="true"/>
     <!--1.4.1 Ensure bootloader password is set (Automated)-->
     <select idref="xccdf_org.ssgproject.content_rule_grub2_password" selected="true"/>
     <!--1.4.2 Ensure permissions on bootloader config are configured (Automated)-->

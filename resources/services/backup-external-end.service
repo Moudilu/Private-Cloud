@@ -1,0 +1,6 @@
+[Unit]
+Description=unmounting external backup disc and playing sound
+Conflicts=media-nc\x2dbkp\x2dext.mount
+
+[Service]
+ExecStart=ogg123 /usr/share/sounds/Yaru/stereo/complete.oga

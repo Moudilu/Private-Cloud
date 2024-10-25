@@ -1,0 +1,22 @@
+[Unit]
+Description=Nextcloud-backup to external synchronisation
+
+# Allow the service to start at most 5 times within 30 minutes
+StartLimitIntervalSec=1800
+StartLimitBurst=5
+
+RequiresMountsFor=/media/nc-bkp-ext
+# Unmounts the HD and plays notification sound
+OnSuccess=backup-external-end.service
+
+[Service]
+Type=exec
+ExecStart=/opt/private-cloud/scripts/backup-nc-bkp.sh "/media/nc-bkp-ext"
+
+# If the backup fails, retry after five minutes
+Restart=on-failure
+RestartSec=300
+
+[Install]
+# find the name of the unit with systemd-escape -p /dev/disk/by-uuid/<UUID of required partition>
+WantedBy=${EXT_UUID_SYSTEMD}.device

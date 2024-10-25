@@ -29,7 +29,7 @@ sudo install -m 640 -g prometheus /dev/null /etc/rclone.configpass
 echo "$RCLONE_CONFIG_PASS" | sudo tee /etc/rclone.configpass > /dev/null
 ```
 
-### Create backup job
+### Backup to cloud
 
 Install the backup script and services which trigger it
 
@@ -42,6 +42,36 @@ sudo systemctl daemon-reload
 sudo systemctl enable backup-cloud.path
 sudo systemctl start backup-cloud.path
 ```
+
+### Backup to external harddrive
+
+Format your drive with ext4. Plug the harddrive to your server.
+
+Create the mountpoint and find the UUID of your partition:
+
+```bash
+sudo mkdir /media/nc-bkp-ext
+lsblk -o NAME,FSTYPE,UUID,SIZE,MOUNTPOINTS
+read -p "Identify the UUID of the partition for your external backup in the list above and enter it" EXT_UUID
+if [ -e "/dev/disk/by-uuid/$EXT_UUID" ]; then
+  echo "UUID=$EXT_UUID /media/nc-bkp-ext ext4 defaults,noauto 0 1" | sudo tee -a /etc/fstab
+  echo "Created mountpoint for external disk, will be mounted automatically by the backup service"
+else
+  echo "Disk with UUID $EXT_UUID can't be found. Make sure it is plugged in and try again."
+fi
+```
+
+Install the service which automatically runs the backup when the disc is plugged in.
+
+```bash
+sudo apt install vorbis-tools yaru-theme-sound
+sudo install ./resources/services/backup-external-end.service /etc/systemd/system
+cat ./resources/services/backup-external.service | EXT_UUID_SYSTEMD="$(systemd-escape -p /dev/disk/by-uuid/$EXT_UUID)" envsubst | sudo tee /etc/systemd/system/backup-external.service
+sudo systemctl daemon-reload
+sudo systemctl enable backup-external.service
+```
+
+If you want to hear a notification sound when the backup is complete, ensure that the volume is set appropriately and is not muted with `sudo alsamixer`.
 
 ## Export metrics to Prometheus
 
