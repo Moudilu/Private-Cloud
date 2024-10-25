@@ -30,6 +30,12 @@ cat ./resources/prometheus/prometheus.yml | envsubst | sudo tee /etc/prometheus/
 sudo systemctl reload prometheus
 ```
 
+Keep metrics for 60 days
+
+```bash
+sudo sed -i 's/ARGS="/ARGS="--storage.tsdb.retention.time=60d /' /etc/default/prometheus
+```
+
 Configure the alertmanager to send mails.
 
 ```bash
