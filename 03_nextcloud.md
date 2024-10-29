@@ -73,6 +73,8 @@ sudo systemctl enable backup-external.service
 
 If you want to hear a notification sound when the backup is complete, ensure that the volume is set appropriately and is not muted with `sudo alsamixer`.
 
+You can add the dashboard with ID 21260 to Grafana.
+
 ## Export metrics to Prometheus
 
 https://github.com/xperimental/nextcloud-exporter

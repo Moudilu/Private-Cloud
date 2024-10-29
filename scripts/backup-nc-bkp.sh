@@ -73,9 +73,28 @@ set +o noclobber
 #################################################
 # Run backup
 #################################################
+function scrape_rclone_metrics {
+    # retrieve the metrics
+    # keep only the rclone related metrics (ignoring all the Go/process related metrics)
+    # add a label with the remote
+    # and write it to a file
+    while \
+        curl -s --max-time 30 http://localhost:5572/metrics | \
+        grep rclone_ | \
+        sed "s/^\([a-zA-Z_][a-zA-Z0-9_]*\) /\1{remote=\"$DESTINATION\"} /g" \
+        > "${TEXTFILE_COLLECTOR_DIR}/rclone-metrics-${DESTINATION_FILE_STRING}.prom.$$"
+    do
+            mv "${TEXTFILE_COLLECTOR_DIR}/rclone-metrics-${DESTINATION_FILE_STRING}.prom.$$" \
+               "${TEXTFILE_COLLECTOR_DIR}/rclone-metrics-${DESTINATION_FILE_STRING}.prom"
+            # wait for 10s. While this will miss the latest metrics before the process terminates, it balances server load
+            sleep 10
+    done
+}
+scrape_rclone_metrics &
+SCRAPING_PID=$!
+
 START_TIME="$(date +%s)"
-# TODO: add options --rc --rc-enable-metrics, scrape them. E.g. by running rclone as a background process, curling the metrics into some textfile collector file. See https://stackoverflow.com/questions/1570262/get-exit-code-of-a-background-process on how to run process in background, wait until it completes and get its exit status
-RCLONE_CONFIG_PASS=`cat /etc/rclone.configpass` rclone sync "$SOURCE_DIRECTORY/" "${DESTINATION}${RCLONE_REMOTE_SEPARATOR}${TARGET_DIRECTORY}" --exclude aio-lockfile --create-empty-src-dirs
+RCLONE_CONFIG_PASS=`cat /etc/rclone.configpass` rclone sync "$SOURCE_DIRECTORY/" "${DESTINATION}${RCLONE_REMOTE_SEPARATOR}${TARGET_DIRECTORY}" --exclude aio-lockfile --create-empty-src-dirs --rc --rc-enable-metrics
 EXIT_CODE=$?
 END_TIME="$(date +%s)"
 
@@ -139,4 +158,11 @@ else
 fi
 
 rm "$SOURCE_DIRECTORY/aio-lockfile"
+
+# make sure the scraping job has terminated
+kill $SCRAPING_PID
+wait $SCRAPING_PID
+# cleanup potentially leftover, uncomplete files
+rm "${TEXTFILE_COLLECTOR_DIR}/rclone-metrics-${DESTINATION_FILE_STRING}.prom."*
+
 exit $EXIT_CODE
