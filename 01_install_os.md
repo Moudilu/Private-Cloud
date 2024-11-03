@@ -179,6 +179,30 @@ Allow only the principal server user to login via SSH.
 echo "AllowUsers ${USER}" | sudo tee /etc/ssh/sshd_config.d/10-restrict-users.conf
 ```
 
+## Configure IP addresses
+
+The setup of your IP configuration might differ depending on your setup. You should already have been assigned an IPv4 address via DHCP. You might want to make it permanent in your router setting, or make this assignment static by deleting the file `/etc/netplan/00-installer-config.yaml` and adding a similar file like below for IPv4.
+
+Dynamic IPv6 assignments have been disabled by a rule in the CIS security profile, since listening to and applying IPv6 router announcements might be a security risk. The below snippet adds a static IPv6 address. You have to find your IPv6 prefix in your router (if you have any) and pick an address from this range.
+
+```bash
+read -p "Your static IPv6 address: " IPV6_ADDRESS
+read -p "IPv6 address of your router within your network: " IPV6_ROUTER
+sudo tee /etc/netplan/50-ipv6-manual-config.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    enp0s31f6:
+      critical: true
+      addresses:
+        - "$IPV6_ADDRESS/128"
+      routes:
+        - to: default
+          via: $IPV6_ROUTER
+EOF
+sudo netplan try
+```
+
 ## Configure Shutdown on low battery
 
 Edit `/etc/UPower/UPower.conf`.

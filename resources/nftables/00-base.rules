@@ -1,9 +1,13 @@
 table inet filter {
         chain input {
                 type filter hook input priority filter; policy drop;
-                ip protocol tcp ct state established accept
-                ip protocol udp ct state established accept
-                ip protocol icmp ct state established accept
+                ip protocol { tcp, udp, icmp } ct state established accept
+                ip6 nexthdr { tcp, udp, icmpv6 } ct state established accept
+
+                # Allow IPv6 required stuff
+                icmpv6 type { nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert, mld-listener-query, echo-reply } accept
+
+                # Note that ping request are not allowed for neither IPv4/6
         }
 
         chain forward {
@@ -21,8 +25,8 @@ table inet filter {
 
         chain output {
                 type filter hook output priority filter; policy drop;
-                ip protocol tcp ct state established,related,new accept
-                ip protocol udp ct state established,related,new accept
-                ip protocol icmp ct state established,related,new accept
+                ip protocol { tcp, udp, icmp } ct state established,related,new accept
+                ip6 nexthdr { tcp, udp } ct state established,related,new accept
+                ip6 nexthdr icmpv6 ct state established,related,new,untracked accept
         }
 }
