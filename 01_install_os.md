@@ -129,9 +129,19 @@ git clone https://github.com/Faebu93/Private-Cloud.git ~/Private-Cloud
 
 ## Install docker
 
-TODO: Maybe just use packages docker.io, docker-compose and docker-buildx from the official repositories instead: https://packages.ubuntu.com/search?keywords=docker&searchon=names&suite=jammy&section=all
+Install docker from the Ubuntu repositories. This version much older compared to the one from the docker repositories, but it is ensured that it is stable and compatible with the rest of the system.
 
-Follow https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+Configure the docker daemon to log to journald by default. This also takes care of log rotation etc.
+
+```bash
+sudo apt install docker.io docker-buildx docker-compose-v2
+cat << EOF | sudo tee -a /etc/docker/daemon.json
+{
+  "log-driver": "journald"
+}
+EOF
+sudo systemctl restart docker.service 
+```
 
 ## Apply CIS security profile
 
