@@ -12,7 +12,7 @@ Create the following logical volumes, with suggested capacities on a 4TB drive:
 
 - /, 25G
 - /tmp, 10G
-- /srv/media, 700G
+- /srv/nc-data-no-bkp, 700G
 - /srv/nc-bkp, 1.3T
 - /srv/nc-data, 1.3T
 - /var/lib/docker, 50G
@@ -129,18 +129,43 @@ git clone https://github.com/Faebu93/Private-Cloud.git ~/Private-Cloud
 
 ## Install docker
 
-Install docker from the Ubuntu repositories. This version much older compared to the one from the docker repositories, but it is ensured that it is stable and compatible with the rest of the system.
 
-Configure the docker daemon to log to journald by default. This also takes care of log rotation etc.
+Configure the docker daemon to log to journald by default. This also takes care of log rotation etc. If you do not want to enable IPv6, comment out/remove the second line.
 
 ```bash
-sudo apt install docker.io docker-buildx docker-compose-v2
-cat << EOF | sudo tee -a /etc/docker/daemon.json
+cat << EOF | sudo tee /etc/docker/daemon.json
 {
-  "log-driver": "journald"
+  "log-driver": "journald",
+  "default-network-opts": {"bridge":{"com.docker.network.enable_ipv6":"true"}}
 }
 EOF
-sudo systemctl restart docker.service 
+```
+
+Install docker from the Docker repositories. Since IPv6 support is not very good in older versions of docker, according to a [dedicated page in the Nextcloud AIO repository](https://github.com/nextcloud/all-in-one/blob/main/docker-ipv6-support.md) at least docker v27.0.1 or newer is required if you want to run docker AIO with IPv6 support.
+
+```bash
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+*Instead*, if you do not use IPv6 and prefer so, you can also install the much older version from the Ubuntu repositories:
+
+```bash
+# only install if you didn't install the version from the docker repositories
+sudo apt install docker.io docker-buildx docker-compose-v2
 ```
 
 ## Apply CIS security profile
@@ -196,20 +221,41 @@ The setup of your IP configuration might differ depending on your setup. You sho
 Dynamic IPv6 assignments have been disabled by a rule in the CIS security profile, since listening to and applying IPv6 router announcements might be a security risk. The below snippet adds a static IPv6 address. You have to find your IPv6 prefix in your router (if you have any) and pick an address from this range.
 
 ```bash
-read -p "Your static IPv6 address: " IPV6_ADDRESS
-read -p "IPv6 address of your router within your network: " IPV6_ROUTER
+read -p "Enter the name of the network interface nextcloud should run on (usually starts with eth or enp):" NETWORK_INTERFACE
+read -p "Your static IPv6 address with prefix length (e.g. '1f97:1bc1:e360:0195::4/64'): " IPV6_ADDRESS
+read -p "IPv6 address of your router within your network (e.g. '1f97:1bc1:e360:0195::1'): " IPV6_ROUTER
 sudo tee /etc/netplan/50-ipv6-manual-config.yaml <<EOF
 network:
   version: 2
   ethernets:
-    enp0s31f6:
+    $NETWORK_INTERFACE:
       critical: true
       addresses:
-        - "$IPV6_ADDRESS/128"
+        - "$IPV6_ADDRESS"
       routes:
         - to: default
           via: $IPV6_ROUTER
 EOF
+sudo chmod 600 /etc/netplan/50-ipv6-manual-config.yaml
+sudo netplan try
+```
+
+You might want to configure additional IP addresses, e. g. to run Nextcloud on a separate IP (and expose it to the internet) and have the other IP free to access other, local services on it.
+
+```bash
+read -p "Your secondary static IPv4 address with prefix length (e.g. '192.168.1.3/24'): " IPV4_ADDRESS_2
+read -p "Your secondary static IPv6 address with prefix length (e.g. '1f97:1bc1:e360:0195::4/64'): " IPV6_ADDRESS_2
+sudo tee /etc/netplan/60-additional-address-config.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    $NETWORK_INTERFACE:
+      critical: true
+      addresses:
+        - "$IPV4_ADDRESS_2"
+        - "$IPV6_ADDRESS_2"
+EOF
+sudo chmod 600 /etc/netplan/60-additional-address-config.yaml
 sudo netplan try
 ```
 
