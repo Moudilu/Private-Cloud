@@ -55,16 +55,16 @@ fi
 # Test existence of lock.roster, and test existence and otherwhise create aio-lockfile in one command (atomically). For this, the option noclobber must be set.
 # If any of the files exist, wait until they are deleted (possibly infinitely), and then try again to create the lockfile
 set -o noclobber
-while [ -f "$SOURCE_DIRECTORY/lock.roster" ] || ! { > "$SOURCE_DIRECTORY/aio-lockfile" ; } &> /dev/null ; do
-    if [ -f "$SOURCE_DIRECTORY/lock.roster" ] ; then
-        echo "The backup archive is currently being modified. Waiting until it is deleted."
-        inotifywait -e delete_self -qq "$SOURCE_DIRECTORY/lock.roster"
+while [ -d "$SOURCE_DIRECTORY/borg/lock.exclusive" ] || ! { > "$SOURCE_DIRECTORY/borg/aio-lockfile" ; } &> /dev/null ; do
+    if [ -d "$SOURCE_DIRECTORY/borg/lock.exclusive" ] ; then
+        echo "The backup archive is currently under exclusive access. Waiting until it is closed."
+        inotifywait -e delete_self -qq "$SOURCE_DIRECTORY/borg/lock.exclusive"
         echo "The backup archive was closed. Continue backup."
     fi
 
-    if [ -f "$SOURCE_DIRECTORY/aio-lockfile" ] ; then
+    if [ -f "$SOURCE_DIRECTORY/borg/aio-lockfile" ] ; then
         echo "The aio-lockfile already exists. Waiting until it is deleted."
-        inotifywait -e delete_self -qq "$SOURCE_DIRECTORY/aio-lockfile"
+        inotifywait -e delete_self -qq "$SOURCE_DIRECTORY/borg/aio-lockfile"
         echo "The aio-lockfile was deleted. Continue backup."
     fi
 done
@@ -157,7 +157,7 @@ else
     fi
 fi
 
-rm "$SOURCE_DIRECTORY/aio-lockfile"
+rm "$SOURCE_DIRECTORY/borg/aio-lockfile"
 
 # make sure the scraping job has terminated
 kill $SCRAPING_PID

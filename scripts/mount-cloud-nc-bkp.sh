@@ -31,7 +31,7 @@ When you're done, hit Ctrl+C in this window.
 EOF
 
 # Mount the backup with borg
-borg mount --foreground -o ro,uid=$(id -u),gid=$(id -g) "$REMOTE_BKP_MOUNTPOINT" "$BORG_MOUNTPOINT"
+borg mount --foreground -o ro,uid=$(id -u),gid=$(id -g) "$REMOTE_BKP_MOUNTPOINT/borg" "$BORG_MOUNTPOINT"
 
 # Clean up
 fusermount -u "$REMOTE_BKP_MOUNTPOINT"

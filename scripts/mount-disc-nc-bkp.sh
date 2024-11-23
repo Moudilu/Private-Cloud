@@ -5,6 +5,13 @@ DISK_MTPNT=${1:-"/mnt/disc-nc-bkp"}
 
 BORG_MOUNTPOINT=/tmp/unencr-disc-nc-bkp
 
+# If script is not run as root, need to run the borg command with sudo since the backup folder is owned by root and borg needs to write the lock file into it
+if [ "$EUID" -ne 0 ] ; then
+    SUDO=sudo
+else
+    SUDO=""
+fi
+
 # Open explorer
 mkdir -p "$BORG_MOUNTPOINT"
 if [ -x "$(command -v xdg-open)" ]; then
@@ -22,7 +29,7 @@ When you're done, hit Ctrl+C in this window.
 EOF
 
 # Mount the backup with borg
-borg mount --foreground -o ro,uid=$(id -u),gid=$(id -g) "$DISK_MTPNT" "$BORG_MOUNTPOINT"
+$SUDO borg mount --foreground -o allow_other,ro,uid=$(id -u),gid=$(id -g) "$DISK_MTPNT/borg" "$BORG_MOUNTPOINT"
 
 # Clean up
 rm -r "$BORG_MOUNTPOINT"

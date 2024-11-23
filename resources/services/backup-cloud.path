@@ -3,7 +3,7 @@ Description=Nextcloud AIO backup lockfile watcher
 After=network.service
 
 [Path]
-PathChanged=/srv/nc-bkp/aio-lockfile
+PathExists=/srv/nc-bkp/borg/lock.exclusive
 
 [Install]
 WantedBy=multi-user.target
