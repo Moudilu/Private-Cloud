@@ -40,7 +40,7 @@ I recommend setting up a reminder to monthly do the following things:
 - plug in your external hard disk to sync your offline backup
 - using the scripts [`mount-cloud-nc-bkp.sh`](scripts/mount-cloud-nc-bkp.sh) & [`mount-disc-nc-bkp.sh`](scripts/mount-disc-nc-bkp.sh), mount your backups, open and check a file you have edited recently (ensures that the backup is readable and up to date)
 - log in to the nextcloud admin settings overview, check for warnings & errors in the logs
-- log in to your server via SSH, verify no evil warnings show up in the login welcome message, ideally do a security audit with `sudo usg audit --html-file /tmp/report.html --tailoring-file ./resources/tailor.xml`
+- log in to your server via SSH, verify no evil warnings show up in the login welcome message, ideally do a security audit with `sudo usg audit --html-file /tmp/report.html --tailoring-file /opt/private-cloud/tailor.xml`, consider also regenerating the tailoring file with the snippet in [Apply CIS security profile](./01_install_os.md#apply-cis-security-profile).
 
 ## Guarantees
 
