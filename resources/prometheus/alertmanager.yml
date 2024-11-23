@@ -2,8 +2,8 @@
 
 global:
   # The smarthost and SMTP sender used for mail notifications.
-  smtp_smarthost: 'lx17.hoststar.hosting:587'
-  smtp_from: '${HOSTNAME}''
+  smtp_smarthost: '${SMTP_HOST}'
+  smtp_from: '${SENDER_MAIL}'
   smtp_hello: '${HOSTNAME}'
   smtp_auth_username: '${SMTP_USER}'
   smtp_auth_password: '${SMTP_PW}'

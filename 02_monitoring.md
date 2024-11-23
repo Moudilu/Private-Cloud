@@ -8,7 +8,9 @@ Create alerts files for host monitoring - memory, filesystem, CPU, temperature, 
 
 ```bash
 sudo install -m 755 -d /etc/prometheus/alerts.d
-sudo install --mode=644 ./resources/prometheus/node-exporter.yml ./resources/prometheus/deadmanswitch.yml /etc/prometheus/alerts.d
+sudo install --mode=644 ./resources/prometheus/node-exporter.yml /etc/prometheus/alerts.d
+# If you want a notification every week, to verify that the system is running, activate also the following rule
+# sudo install --mode=644 ./resources/prometheus/deadmanswitch.yml /etc/prometheus/alerts.d
 
 # Add additional collectors to node exporter
 sudo sed -i 's/ARGS="/ARGS="--collector.systemd --collector.processes/' /etc/default/prometheus-node-exporter
@@ -39,11 +41,11 @@ sudo sed -i 's/ARGS="/ARGS="--storage.tsdb.retention.time=60d /' /etc/default/pr
 Configure the alertmanager to send mails.
 
 ```bash
-echo "Enter user for SMTP account"
-read SMTP_USER
-echo "Enter password for SMTP account"
-read -s SMTP_PW
-cat ./resources/prometheus/alertmanager.yml | SMTP_USER="$SMTP_USER" SMTP_PW="$SMTP_PW" envsubst | sudo tee /etc/prometheus/alertmanager.yml
+read -p "Enter the host of your SMTP server" SMTP_HOST
+read -p "Enter user for SMTP account" SMTP_USER
+read -sp "Enter password for SMTP account" SMTP_PW
+read -p "Enter the sender address to use for the alert emails" SENDER_MAIL
+cat ./resources/prometheus/alertmanager.yml | SMTP_HOST="$SMTP_HOST" SMTP_USER="$SMTP_USER" SMTP_PW="$SMTP_PW" ADMIN_EMAIL="$ADMIN_EMAIL" SENDER_MAIL="$SENDER_MAIL" HOSTNAME="$(hostname)" envsubst | sudo tee /etc/prometheus/alertmanager.yml
 # lock access to the configfile, to protect its secrets
 sudo chown root:prometheus /etc/prometheus/alertmanager.yml
 sudo chmod 640 /etc/prometheus/alertmanager.yml
@@ -64,13 +66,14 @@ echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stab
 sudo apt-get update
 # Installs the latest OSS release:
 sudo apt-get install -y grafana
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server
 ```
 
 Change general configuration.
 
 ```bash
-echo "Enter the admin password to be set for Grafana"
-read -s GRAFANA_PASSWORD
+read -sp "Enter the admin password to be set for Grafana" GRAFANA_PASSWORD
 cat ./resources/grafana/grafana.ini | GRAFANA_PASSWORD="$GRAFANA_PASSWORD" envsubst | sudo tee -a /etc/grafana/grafana.ini
 
 sudo install --mode=644 ./resources/grafana/prometheus.yaml ./resources/grafana/alertmanager.yaml /etc/grafana/provisioning/datasources
@@ -81,4 +84,4 @@ sudo install ./resources/nftables/10-grafana.rules /etc/inet-filter.rules.d
 sudo systemctl reload nftables.service
 ```
 
-Go to `http://<HOST>:3000`, login, add the dashboard with IDs 1860, 20204.
+Go to `http://<HOST>:3000`, login, add the dashboard with IDs 1860, 20204 by going to Dashboards > New > Import and entering the IDs into the provided field.

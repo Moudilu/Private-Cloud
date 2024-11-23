@@ -221,6 +221,9 @@ DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_package_aide_i
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_build_database" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_periodic_cron_checking" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_check_audit_tool" # Dito.
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_nftables_rules_permanent" # nftables rules *are* permanent, raise an alert though because docker creates transient ones
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_file_permissions_ungroupowned" # some files in the docker volumes/images are necessarily not owned by a local user
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_no_files_unowned_by_user" # Dito.
 
 for RULE in $DISABLED_RULES ; do
   ESCAPED_RULE=$(printf '%s\n' "$RULE" | sed -e 's/[]\/$*.^[]/\\&/g');
@@ -327,3 +330,7 @@ sudo install ./resources/services/reboot.timer /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable reboot.timer
 ```
+
+## Reboot
+
+To finalize the setup, you should reboot now: `sudo reboot now`
