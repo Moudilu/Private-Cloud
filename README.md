@@ -3,9 +3,9 @@
 
 ## Introduction
 
-These are the notes how I installed and run an Ubuntu server with my private Nextcloud instances. They may or may not help you, but should provide good guidance for similar endeavors.
+This repository contains instructions on how to set up a server with Ubuntu and the awesome [Nextcloud](https://nextcloud.com). It is built with security and reliability as primary goals.
 
-I repurposed an old laptop, equipped with a WD RED 4TB SSD, which makes for a cheap but enough powerful server for most things I want to do, including UPS.
+It was originally installed on a repurposed laptop and intended for home use. While this repo serves primarily as the documentation of the setup of the author, it should be applicable by a wider range of users without a lot of modifications.
 
 ## Features
 
@@ -16,7 +16,6 @@ The main features/goals of the installed system are the following
 - monitoring and alerting with [Prometheus](https://prometheus.io/), visualization with [Grafana](https://grafana.com/grafana/)
 - encrypted backups with [borg](https://www.borgbackup.org/), stored on the public cloud of your choice with [rclone](https://rclone.org/)
 - nftables firewall
-- high level of security
 - reliable and automated 3-2-1 backup strategy
 - low maintenance effort
 
@@ -32,8 +31,6 @@ Follow these instructions in sequence:
 2. [Monitoring with Prometheus and Grafana](./02_monitoring.md)
 3. [Install Nextcloud and backup services](./03_nextcloud.md)
 
-Remove this repository from your server with `rm -rf ~/Private-Cloud`.
-
 Congratulations, you have your own cloud running!
 
 ## Maintenance
@@ -47,4 +44,4 @@ I recommend setting up a reminder to monthly do the following things:
 
 ## Guarantees
 
-None. Except that some things will fail at some point or the other, as always. Use your own brain. See the attached [license](LICENSE).
+None. _You_ are responsible for what you do on your system, so think and try to understand what is done and why before you type, as always. See the attached [license](LICENSE).
