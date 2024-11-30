@@ -222,7 +222,7 @@ DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_build_dat
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_periodic_cron_checking" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_check_audit_tool" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_nftables_rules_permanent" # nftables rules *are* permanent, raise an alert though because docker creates transient ones
-DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_file_permissions_ungroupowned" # some files in the docker volumes/images are necessarily not owned by a local user
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_file_permissions_ungroupowned" # some files in the docker volumes/images are necessarily not owned by a local user; DO NOT apply a fix for this, as this messes with the permissions of the data in the nextcloud
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_no_files_unowned_by_user" # Dito.
 
 for RULE in $DISABLED_RULES ; do

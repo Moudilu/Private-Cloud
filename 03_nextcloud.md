@@ -33,6 +33,16 @@ echo "$RCLONE_CONFIG_PASS" | sudo tee /etc/rclone.configpass > /dev/null
 
 If you have a backup, you should restore it at the latest now. Copy the borg archive to `/srv/nc-bkp`.
 
+One of these commands might come in handy:
+
+```bash
+sudo rclone sync remote-nc-bkp:backup/$(hostname)/nc-bkp /srv/nc-bkp/ -v
+
+# or
+
+sudo rclone sync /media/nc-bkp-ext/backup/mf-srv/nc-bkp /srv/nc-bkp/ -v
+```
+
 ### Backup to cloud
 
 Install the backup script and services which trigger it
@@ -40,7 +50,8 @@ Install the backup script and services which trigger it
 ```bash
 sudo apt install -y inotify-tools 
 sudo install -d /opt/private-cloud/scripts /var/lib/private-cloud/stats
-sudo install ./resources/scripts/backup-nc-bkp.sh ./resources/scripts/mount-cloud-nc-bkp.sh ./resources/scripts/mount-disc-nc-bkp.sh /opt/private-cloud/scripts
+sudo install ./scripts/backup-nc-bkp.sh ./scripts/mount-cloud-nc-bkp.sh ./scripts/mount-disc-nc-bkp.sh /opt/private-cloud/scripts
+sudo apt install borgbackup # install the tool to enable mounting the backup
 sudo install ./resources/services/backup-cloud.service ./resources/services/backup-cloud.path /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable backup-cloud.path
@@ -68,7 +79,7 @@ fi
 Install the service which automatically runs the backup when the disc is plugged in.
 
 ```bash
-sudo apt install vorbis-tools yaru-theme-sound
+sudo apt install vorbis-tools yaru-theme-sound alsa-utils
 sudo install ./resources/services/backup-external-end.service /etc/systemd/system
 cat ./resources/services/backup-external.service | EXT_UUID_SYSTEMD="$(systemd-escape -p /dev/disk/by-uuid/$EXT_UUID)" envsubst | sudo tee /etc/systemd/system/backup-external.service
 sudo systemctl daemon-reload
@@ -91,7 +102,7 @@ read -p 'Enter the first IP address on which you want to expose this Nextcloud i
 
 # get docker compose file, apply custom settings
 # prepopulate the nextcloud-aio network in order to control the interface name, s.t. it can be referenced in the firewall rules
-curl https://raw.githubusercontent.com/nextcloud/all-in-one/refs/heads/main/compose.yaml 2> /dev/null \
+curl https://raw.githubusercontent.com/nextcloud/all-in-one/refs/heads/main/compose.yaml \
 | yq "
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_DATADIR = \"/srv/nc-data\" |
   .services.nextcloud-aio-mastercontainer.networks = [\"nextcloud-aio\"] |
@@ -130,36 +141,7 @@ sudo yq -i "
 Configure the firewall to allow forwarding of packets to Nextcloud:
 
 ```bash
-cat << 'EOF' | sudo tee /etc/inet-filter.rules.d/20-nextcloud.rules
-table inet filter {
-        chain forward {
-                # Allow traffic to a port in the docker network
-                # Matches packets to a specified network (find with ip a)
-                # Dport is the destination port on the container!
-
-                # Public interface, open/forward these ports also in your internet
-                # facing route
-                # open the same ports also on UDP to support QUIC / HTTP/3
-                oifname "nextcloud-aio" tcp dport 80 accept
-                oifname "nextcloud-aio" tcp dport 443 accept
-                oifname "nextcloud-aio" udp dport 80 accept
-                oifname "nextcloud-aio" udp dport 443 accept
-
-                # Nextcloud AIO management interface
-                oifname "nextcloud-aio" tcp dport 8080 accept
-                # 8443 only if you want to access it over the public internet with a valid certificate
-                # oifname "nextcloud-aio" tcp dport 8443 accept
-
-                # only necessary for the talk container
-                oifname "nextcloud-aio" tcp dport 3478 accept
-                oifname "nextcloud-aio" udp dport 3478 accept
-
-                # Allow outgoing traffic, initiated by docker containers
-                # This includes container-container and container-world traffic 
-                iifname "nextcloud-aio" accept
-        }
-}
-EOF
+sudo install -m 600 ./resources/nftables/20-nextcloud.rules /etc/inet-filter.rules.d
 sudo systemctl reload nftables.service
 ```
 

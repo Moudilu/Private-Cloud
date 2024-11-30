@@ -80,7 +80,7 @@ sudo install --mode=644 ./resources/grafana/prometheus.yaml ./resources/grafana/
 sudo systemctl restart grafana-server.service
 
 # Add firewall rule
-sudo install ./resources/nftables/10-grafana.rules /etc/inet-filter.rules.d
+sudo install -m 600 ./resources/nftables/10-grafana.rules /etc/inet-filter.rules.d
 sudo systemctl reload nftables.service
 ```
 

@@ -1,0 +1,28 @@
+table inet filter {
+        chain forward {
+                # Allow traffic to a port in the docker network
+                # Matches packets to a specified network (find with ip a)
+                # Dport is the destination port on the container!
+
+                # Public interface, open/forward these ports also in your internet
+                # facing route
+                # open the same ports also on UDP to support QUIC / HTTP/3
+                oifname "nextcloud-aio" tcp dport 80 accept
+                oifname "nextcloud-aio" tcp dport 443 accept
+                oifname "nextcloud-aio" udp dport 80 accept
+                oifname "nextcloud-aio" udp dport 443 accept
+
+                # Nextcloud AIO management interface
+                oifname "nextcloud-aio" tcp dport 8080 accept
+                # 8443 only if you want to access it over the public internet with a valid certificate
+                # oifname "nextcloud-aio" tcp dport 8443 accept
+
+                # only necessary for the talk container
+                oifname "nextcloud-aio" tcp dport 3478 accept
+                oifname "nextcloud-aio" udp dport 3478 accept
+
+                # Allow outgoing traffic, initiated by docker containers
+                # This includes container-container and container-world traffic 
+                iifname "nextcloud-aio" accept
+        }
+}
