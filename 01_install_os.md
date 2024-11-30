@@ -196,13 +196,38 @@ sudo apt install docker.io docker-buildx docker-compose-v2
 
 ## Apply CIS security profile
 
+### Manually fix remaining problems
+
+#### Configure nftables
+
+Allow incoming SSH connections, deny everything else
+
+```bash
+sudo install -m 700 -d /etc/inet-filter.rules.d
+sudo install --mode 600 ./resources/nftables/00-base.rules ./resources/nftables/99-ssh.rules /etc/inet-filter.rules.d
+echo 'include "/etc/inet-filter.rules.d/*.rules"' | sudo tee -a /etc/nftables.conf
+```
+
+After nftables has been activated (happens in the next steps), see the rules with `sudo nft list ruleset`.
+
+#### Limit users SSH Access
+
+Allow only the principal server user to login via SSH.
+
+```bash
+echo "AllowUsers ${USER}" | sudo tee /etc/ssh/sshd_config.d/10-restrict-users.conf
+sudo systemctl reload ssh
+```
+
+### Apply automatic fixes
+
 Install [Ubuntu Security Guide](https://ubuntu.com/security/certifications/docs/2204/disa-stig/installation)
 
 ```shell
 sudo apt update
-sudo apt install ubuntu-advantage-tools
+sudo apt install -y ubuntu-advantage-tools
 sudo ua enable usg
-sudo apt install usg
+sudo apt install -y usg
 ```
 
 Whenever a new USG/CIS version is released, you should regenerate the tailoring file with the following snippet. A few of the rules are disabled since they are not applicable in this setup.
@@ -242,35 +267,16 @@ To see the script which applies the fixes, run `sudo usg generate-fix --tailorin
 
 Note that at this point there are some remaining problems, which will be fixed in the next steps.
 
-### Manually fix remaining problems
-
-#### Configure nftables
-
-Allow incoming SSH connections, deny everything else
-
-```bash
-sudo install -m 700 -d /etc/inet-filter.rules.d
-sudo install --mode 600 ./resources/nftables/00-base.rules ./resources/nftables/99-ssh.rules /etc/inet-filter.rules.d
-echo 'include "/etc/inet-filter.rules.d/*.rules"' | sudo tee -a /etc/nftables.conf
-sudo systemctl reload nftables.service
-```
-
-See rules with `sudo nft list ruleset`.
-
-#### Limit users SSH Access
-
-Allow only the principal server user to login via SSH.
-
-```bash
-echo "AllowUsers ${USER}" | sudo tee /etc/ssh/sshd_config.d/10-restrict-users.conf
-sudo systemctl reload ssh
-```
-
 ### Audit
 
-Reboot with `sudo reboot now`.
+Audit and copy the report to your local PC
 
-Audit with `sudo usg audit --tailoring-file /opt/private-cloud/tailor.xml --html-file /tmp/report.html`. Make it readable by the user with `sudo chmod o+r /tmp/report.html`. On your PC, download the file with `scp <User>@<Server>:/tmp/report.html` and verify there are no failed rules. Remove the report with `sudo rm /tmp/report.html`.
+```bash
+sudo usg audit --tailoring-file /opt/private-cloud/tailor.xml --html-file /tmp/report.html
+sudo chmod o+r /tmp/report.html
+```
+
+On your PC, download the file with `scp <User>@<Server>:/tmp/report.html` and verify there are no failed rules. Remove the report with `sudo rm /tmp/report.html`.
 
 ## Configure IP addresses
 
