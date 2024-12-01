@@ -1,5 +1,4 @@
-# Private Cloud
-## Installing Nextcloud on a hardened Ubuntu Server
+# Private Cloud - Installing Nextcloud on a hardened Ubuntu Server
 
 ## Introduction
 
@@ -25,11 +24,18 @@ If you encounter issues or have suggestions for improvement, feel encouraged to 
 
 ## Instructions
 
+Be aware of the following things:
+
+- usually you need to understand what you are currently doing, just copying and pasting might or might not work
+- some of the commands (like appending some text to a file) will lead to unexpected effects when executed more than once
+
 Follow these instructions in sequence:
 
 1. [Install the base operating system](./01_install_os.md)
 2. [Monitoring with Prometheus and Grafana](./02_monitoring.md)
 3. [Install Nextcloud and backup services](./03_nextcloud.md)
+
+It is highly recommended executing all maintenance steps indicated below now for the first time.
 
 Congratulations, you have your own cloud running!
 
@@ -41,6 +47,7 @@ I recommend setting up a reminder to monthly do the following things:
 - using the scripts [`mount-cloud-nc-bkp.sh`](scripts/mount-cloud-nc-bkp.sh) & [`mount-disc-nc-bkp.sh`](scripts/mount-disc-nc-bkp.sh), mount your backups, open and check a file you have edited recently (ensures that the backup is readable and up to date)
 - log in to the nextcloud admin settings overview, check for warnings & errors in the logs
 - log in to your server via SSH, verify no evil warnings show up in the login welcome message, ideally do a security audit with `sudo usg audit --html-file /tmp/report.html --tailoring-file /opt/private-cloud/tailor.xml`, consider also regenerating the tailoring file with the snippet in [Apply CIS security profile](./01_install_os.md#apply-cis-security-profile).
+- optionally, check the consistency of one of your backups with [borg check](https://borgbackup.readthedocs.io/en/stable/usage/check.html) (takes a lot of time, depending on the size of your backup): `borg check --verify-data <path to local, cloud or external disk backup>`
 
 ## Guarantees
 

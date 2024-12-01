@@ -16,7 +16,7 @@ Run `sudo rclone config` and complete the following steps:
 
 - encrypt the configuration with a password of your choice, save the password: s -> a
 - Create all remotes, where you want the backup to be stored (maybe distributed to several remotes)
-- - If you have stored the backup in several locations: 
+- - If you have several cloud locations you want to join to store your backup: 
     
     Create a remote of type [`union`](https://rclone.org/union/) with the name `remote-nc-bkp`, with the remotes and paths where you want the backup stored. The other settings should be ok with the default values. 
   - If the backup is only in one location, name the remote directly `remote-nc-bkp`. The backup will be stored in the root of this remote, if the scripts are not adjusted accordingly.
@@ -67,7 +67,7 @@ Create the mountpoint and find the UUID of your partition:
 ```bash
 sudo mkdir /media/nc-bkp-ext
 lsblk -o NAME,FSTYPE,UUID,SIZE,MOUNTPOINTS
-read -p "Identify the UUID of the partition for your external backup in the list above and enter it" EXT_UUID
+read -p "Identify the UUID of the partition for your external backup in the list above and enter it: " EXT_UUID
 if [ -e "/dev/disk/by-uuid/$EXT_UUID" ]; then
   echo "UUID=$EXT_UUID /media/nc-bkp-ext ext4 defaults,noauto 0 1" | sudo tee -a /etc/fstab
   echo "Created mountpoint for external disk, will be mounted automatically by the backup service"
@@ -79,7 +79,7 @@ fi
 Install the service which automatically runs the backup when the disc is plugged in.
 
 ```bash
-sudo apt install vorbis-tools yaru-theme-sound alsa-utils
+sudo apt install -y vorbis-tools yaru-theme-sound alsa-utils
 sudo install ./resources/services/backup-external-end.service /etc/systemd/system
 cat ./resources/services/backup-external.service | EXT_UUID_SYSTEMD="$(systemd-escape -p /dev/disk/by-uuid/$EXT_UUID)" envsubst | sudo tee /etc/systemd/system/backup-external.service
 sudo systemctl daemon-reload
@@ -170,7 +170,7 @@ Create a random token, e.g. with `TOKEN=$(openssl rand -hex 32)`, and run `sudo 
 Create the file with environment variables for configuration:
 
 ```bash
-read -sp "Enter the public domain of your nextcloud installation" NC_FQDN
+read -p "Enter the public domain of your nextcloud installation (e.g. https://private-cloud.org): " NC_FQDN
 sudo tee -a /etc/prometheus-nextcloud-exporter.env <<EOF
 NEXTCLOUD_SERVER=${NC_FQDN}
 NEXTCLOUD_AUTH_TOKEN=$TOKEN

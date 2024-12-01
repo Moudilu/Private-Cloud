@@ -9,7 +9,7 @@ echo "Mounting cloud backup folder to $REMOTE_BKP_MOUNTPOINT"
 if [[ -z "$RCLONE_CONFIG_PASS" ]]; then
     echo "To silence prompts for rclone configuration password, set the environment variable RCLONE_CONFIG_PASS"
 fi
-rclone mount "remote-nc-bkp:" "$REMOTE_BKP_MOUNTPOINT" --vfs-cache-mode=full --daemon 
+rclone mount "remote-nc-bkp:backup/$(hostname)/nc-bkp" "$REMOTE_BKP_MOUNTPOINT" --vfs-cache-mode=full --daemon 
 
 # Open explorer
 mkdir "$BORG_MOUNTPOINT"

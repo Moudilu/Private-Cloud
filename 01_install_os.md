@@ -10,14 +10,14 @@ Flash the ISO image to a USB stick. On Linux this can be achieved e.g. with dd, 
 
 Boot from the USB stick with network cable attached and follow the installation process. As type of installation choose `Ubuntu server`. 3rd-party drivers are optional, depending on your hardware it might make sense to activate it.
 
-Create the following logical volumes, with suggested capacities on a 4TB drive (create new volumes with `AVAILABLE DEVICES > Your disk > free space > Create Logical Volume`, arbitrary name, mount point as indicated below):
+Create the following logical volumes, with suggested capacities on a 4TB drive (create new volumes with `AVAILABLE DEVICES > Your disk > free space > Create Logical Volume`, arbitrary name, mount point as indicated below). It is recommended to leave some free space in the volume group which can be assigned as needed to various volumes
 
 - /, 25G
 - /tmp, 10G
-- /srv/nc-data-no-bkp, 700G
+- /var/lib/docker, 50G
 - /srv/nc-bkp, 1.3T
 - /srv/nc-data, 1.3T
-- /var/lib/docker, 50G
+- /srv/nc-data-no-bkp, 700G, optional
 
 Activate Ubuntu Pro (free for private use), install OpenSSH server and no additional packages.
 
@@ -128,7 +128,6 @@ Set the default editor to the one you're use to with `sudo update-alternatives -
 If you run on a laptop with a battery (which is a convenient UPS), adjust the settings with the following values. Read & edit the file yourself to adjust it to your needs.
 
 ```bash
-
 sudo sed -i 's/CriticalPowerAction=.*/CriticalPowerAction=PowerOff/;s/PercentageCritical=.*/PercentageCritical=12/;s/PercentageAction=.*/PercentageAction=8/' /etc/UPower/UPower.conf
 
 sudo systemctl restart upower
@@ -184,7 +183,7 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update
 
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
 *Instead*, if you do not use IPv6 and prefer so, you can also install the much older version from the Ubuntu repositories:
@@ -239,6 +238,7 @@ sudo chmod 600 /opt/private-cloud/tailor.xml
 
 # Disable rules not applicable in this setup
 DISABLED_RULES="xccdf_org.ssgproject.content_rule_sysctl_net_ipv4_ip_forward" # Disabled because might be needed for containers
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_sysctl_net_ipv6_conf_all_forwarding" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_grub2_uefi_password" # Disabled because physical access is not part of the threat model
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_ensure_root_password_configured" # Disabled because physical access is not part of the threat model 
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_kernel_module_usb-storage_disabled" # USB storage is needed for the external backup
@@ -246,7 +246,7 @@ DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_package_aide_i
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_build_database" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_periodic_cron_checking" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_check_audit_tool" # Dito.
-DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_nftables_rules_permanent" # nftables rules *are* permanent, raise an alert though because docker creates transient ones
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_nftables_rules_permanent" # nftables rules *are* permanent, raises an alert though because docker creates transient ones
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_file_permissions_ungroupowned" # some files in the docker volumes/images are necessarily not owned by a local user; DO NOT apply a fix for this, as this messes with the permissions of the data in the nextcloud
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_no_files_unowned_by_user" # Dito.
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Provide the mountpoint of the backup as argument. Otherwhise /mnt/disc-nc-bkp is used
-DISK_MTPNT=${1:-"/mnt/disc-nc-bkp"}
+DISK_MTPNT=${1:-"/mnt/disc-nc-bkp/backup/$(hostname)/nc-bkp"}
 
 BORG_MOUNTPOINT=/tmp/unencr-disc-nc-bkp
 
