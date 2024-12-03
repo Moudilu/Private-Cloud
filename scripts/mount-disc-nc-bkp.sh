@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Provide the mountpoint of the backup as argument. Otherwhise /mnt/disc-nc-bkp is used
-DISK_MTPNT=${1:-"/mnt/disc-nc-bkp/backup/$(hostname)/nc-bkp"}
+BORG_REPOSITORY=${1:-"/media/nc-bkp-ext/backup/$(hostname)/srv/nc-bkp"}
 
 BORG_MOUNTPOINT=/tmp/unencr-disc-nc-bkp
 
@@ -29,12 +29,10 @@ When you're done, hit Ctrl+C in this window.
 EOF
 
 # Mount the backup with borg
-$SUDO borg mount --foreground -o allow_other,ro,uid=$(id -u),gid=$(id -g) "$DISK_MTPNT/borg" "$BORG_MOUNTPOINT"
+$SUDO borg mount --foreground -o allow_other,ro,uid=$(id -u),gid=$(id -g) "$BORG_REPOSITORY/borg" "$BORG_MOUNTPOINT"
 
 # Clean up
 rm -r "$BORG_MOUNTPOINT"
 echo "Cleaned up"
 echo "Press ENTER to exit"
 read
-
-

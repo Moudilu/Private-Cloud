@@ -15,7 +15,7 @@
 SOURCE_DIRECTORY="/srv/nc-bkp"
 DESTINATION="${1:-remote-nc-bkp}"
 
-TARGET_DIRECTORY="backup/$(hostname)/nc-bkp"
+TARGET_DIRECTORY="backup/$(hostname)$SOURCE_DIRECTORY"
 
 STATS_DIR=/var/lib/private-cloud/stats
 TEXTFILE_COLLECTOR_DIR=/var/lib/prometheus/node-exporter
