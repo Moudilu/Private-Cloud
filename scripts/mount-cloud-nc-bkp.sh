@@ -37,6 +37,6 @@ borg mount --foreground -o ro,uid=$(id -u),gid=$(id -g) "$REMOTE_BKP_MOUNTPOINT/
 
 # Clean up
 fusermount -u "$REMOTE_BKP_MOUNTPOINT"
-rm -r "$REMOTE_BKP_MOUNTPOINT"
-rm -r "$BORG_MOUNTPOINT"
+rm -d "$REMOTE_BKP_MOUNTPOINT"
+rm -d "$BORG_MOUNTPOINT"
 echo "Cleaned up"
