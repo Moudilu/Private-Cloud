@@ -25,23 +25,22 @@ groups:
     annotations:
       summary: Nextcloud is not running
       description: "Nextcloud on {{ $labels.instance }} is not reported to be up for at least two hours. If this is expected, you can ignore this message.\n  LABELS = {{ $labels }}"
-
 - name: Nextcloud backup synchronization
   rules:
   - alert: Cloud backup not synchronized
-    expr: '(time()-nextcloud_backup_sync_last_run{remote="remote-nc-bkp"}) / 3600 > 28'
+    expr: 'delta(nextcloud_backup_sync_successful_backup_count{remote="remote-nc-bkp"}[30h]) < 1'
+    labels:
+      severity: critical
+    annotations:
+      summary: "Nextcloud backup has not been synchronized to remote cloud"
+      description: "Nextcloud backup has not been synchronized to remote cloud for 30 hours. You might want to check why.\n LABELS = {{ $labels }}"
+  - alert: Sync external disk backup
+    expr: 'delta(nextcloud_backup_sync_successful_backup_count{remote="/media/nc-bkp-ext"}[34d]) < 1'
     labels:
       severity: warning
     annotations:
-      summary: "Nextcloud backup has not been synchronized to remote cloud"
-      description: "Nextcloud backup has not been synchronized to remote cloud for {{ $value }} hours. You might want to check why.\n LABELS = {{ $labels }}"
-  - alert: Sync external disk backup
-    expr: '(time()-nextcloud_backup_sync_last_run{remote="/media/nc-bkp-ext"}) / (3600 * 24) > 28'
-    labels:
-      severity: information
-    annotations:
       summary: "Plug in external disk to Nextcloud server"
-      description: "Nextcloud backup has not been synchronized to the external disk for {{ $value }} days. You might want to plug in your disk to the server.\n LABELS = {{ $labels }}"
+      description: "Nextcloud backup has not been synchronized to the external disk for 34 days. You might want to plug in your disk to the server.\n LABELS = {{ $labels }}"
   - alert: Nextcloud backup size increase
     expr: 'idelta(nextcloud_backup_sync_bytes[1m]) * 100 /nextcloud_backup_sync_bytes offset 1m > 20'
     labels:
@@ -57,7 +56,7 @@ groups:
       summary: "Nextcloud backup size decreased"
       description: "Nextcloud backup size decreased by {{ $value }}%. If this is expected you can ignore this warning.\n LABELS = {{ $labels }}"
   - alert: Nextcloud backup synchronized to external disk
-    expr: 'delta(nextcloud_backup_sync_successful_backup_count{remote="/media/nc-bkp-ext"}[1m]) > 0.5'
+    expr: 'delta(nextcloud_backup_sync_successful_backup_count{remote="/media/nc-bkp-ext"}[5m]) > 0'
     labels:
       severity: information
     annotations:
