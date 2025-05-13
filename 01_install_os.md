@@ -334,7 +334,7 @@ Some consider it a good idea to reboot routinely. This service reboots the syste
 ```bash
 sudo install ./resources/services/reboot.timer /etc/systemd/system
 sudo systemctl daemon-reload
-sudo systemctl enable reboot.timer
+sudo systemctl enable --now reboot.timer
 ```
 
 ## Reboot

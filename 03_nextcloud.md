@@ -132,7 +132,8 @@ sudo yq -i "
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_MOUNT = \"/srv/nc-data-no-bkp\" |
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_ENABLE_DRI_DEVICE = \"true\" |
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_ADDITIONAL_APKS=\"imagemagick bash ffmpeg libva-utils libva-vdpau-driver libva-intel-driver intel-media-driver mesa-va-gallium\" |
-  .services.nextcloud-aio-mastercontainer.environment.AIO_COMMUNITY_CONTAINERS=\"memories fail2ban\"
+  .services.nextcloud-aio-mastercontainer.environment.AIO_COMMUNITY_CONTAINERS=\"memories fail2ban\" |
+  .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_MEMORY_LIMIT=\"2048M\"
 " /opt/private-cloud/nextcloud.docker-compose.yaml
 ```
 
@@ -158,6 +159,17 @@ Now you should be able to go to https://\<internal IP of nextcloud instance\>:80
 In the section `Backup and restore`, enter the path `/srv/nc-bkp` and click on `Create backup` to create the initial backup. After it completed, submit a time when the daily automated backups shall be run.
 
 Please refer to the extensive and very good documentation of [Nextcloud AIO](https://github.com/nextcloud/all-in-one).
+
+The following settings might be interesting:
+
+```bash
+# Set the time for non-time critical background tasks to 11pm UTC (see https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/background_jobs_configuration.html)
+sudo docker exec --user www-data -it nextcloud-aio-nextcloud php occ config:system:set maintenance_window_start --type=integer --value=23
+
+# Set the default phone region (as Nextcloud security check might complain about it otherwhise), see https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/config_sample_php_parameters.html#default-phone-region
+# Use a code from https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2#Officially_assigned_code_elements
+sudo docker exec --user www-data -it nextcloud-aio-nextcloud php occ config:system:set default_phone_region --value="CH"
+```
 
 ## Export metrics to Prometheus
 
