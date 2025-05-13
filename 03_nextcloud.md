@@ -4,30 +4,28 @@
 
 ### Configure rclone
 
+Since the rclone version in the Ubuntu repositories is quite outdated, it has happened that Onedrive could not be accessed anymore using the repository rclone version. Therefore, rclone is used in a docker container, which is one of the recommended usage variants.
+
+Create a configuration passwort for rclone and save it to a root-only readable file, so that scripts can use rclone:
+
 ```bash
-sudo apt install -y rclone
+read -sp "Enter the password for your rclone configuration: " RCLONE_CONFIG_PASS
+sudo install -m 640 /dev/null /etc/rclone.configpass
+echo "RCLONE_CONFIG_PASS=$RCLONE_CONFIG_PASS" | sudo tee /etc/rclone.configpass > /dev/null
 ```
 
 On your development host, open an SSH connection forwarding port 53682 with the command `ssh -L localhost:53682:localhost:53682 username@remote_server`, in order to be able to see the authentication web page. See https://rclone.org/remote_setup/ for other options.
 
 If you have already created a Client ID for OneDrive according to https://rclone.org/onedrive/#getting-your-own-client-id-and-key before, you might be able to extend the validity of the token. New registrations seem disabled, if the documentation has not been updated you might have to (and I think can) just go with the default rclone client ID. It might be throttled, but short tests have shown no difference.
 
-Run `sudo rclone config` and complete the following steps:
+Run `sudo docker run --rm -it --volume /root/.config/rclone:/config/rclone -p 53682:53682 --env-file /etc/rclone.configpass rclone/rclone:latest config` and complete the following steps:
 
-- encrypt the configuration with a password of your choice, save the password: s -> a
+- make sure the configuration is encrypted: s -> a
 - Create all remotes, where you want the backup to be stored (maybe distributed to several remotes)
 - - If you have several cloud locations you want to join to store your backup: 
     
     Create a remote of type [`union`](https://rclone.org/union/) with the name `remote-nc-bkp`, with the remotes and paths where you want the backup stored. The other settings should be ok with the default values. 
   - If the backup is only in one location, name the remote directly `remote-nc-bkp`. The backup will be stored in the root of this remote, if the scripts are not adjusted accordingly.
-
-Save the rclone configuration passwort to a root-only readable file, so that scripts can use rclone:
-
-```bash
-read -sp "Enter the password for your rclone configuration: " RCLONE_CONFIG_PASS
-sudo install -m 640 -g prometheus /dev/null /etc/rclone.configpass
-echo "$RCLONE_CONFIG_PASS" | sudo tee /etc/rclone.configpass > /dev/null
-```
 
 ### Restore backup
 

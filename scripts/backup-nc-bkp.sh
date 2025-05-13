@@ -37,17 +37,20 @@ if [ -z "$(ls -A "$SOURCE_DIRECTORY/")" ]; then
 fi
 if [[ $DESTINATION == */* ]]; then
     # The destination contains a directory separator, it is a local path
-    RCLONE_REMOTE_SEPARATOR="/"
     DESTINATION_FILE_STRING=${DESTINATION//\//-} # replace slashes with dashes, for use in filenames
+    DESTINATION_REMOTE="/dest/"
+    DESTINATION_VOLUME_ARGUMENT="--volume "$DESTINATION":/dest/:rw"
     if ! install -m 755 -d "$DESTINATION/$TARGET_DIRECTORY" ; then
         echo "Could not create target directory."
         exit 1
     fi
 else
     # The destination is a rclone remote
-    RCLONE_REMOTE_SEPARATOR=":"
-    DESTINATION_FILE_STRING=$DESTINATION
+    DESTINATION_FILE_STRING="$DESTINATION"
+    DESTINATION_REMOTE="$DESTINATION:"
+    DESTINATION_VOLUME_ARGUMENT=""
 fi
+echo "Remote: ${DESTIONATION_REMOTE}"
 
 #################################################
 # Acquire lock on backup
@@ -94,7 +97,15 @@ scrape_rclone_metrics &
 SCRAPING_PID=$!
 
 START_TIME="$(date +%s)"
-RCLONE_CONFIG_PASS=`cat /etc/rclone.configpass` rclone sync "$SOURCE_DIRECTORY/" "${DESTINATION}${RCLONE_REMOTE_SEPARATOR}${TARGET_DIRECTORY}" --exclude aio-lockfile --create-empty-src-dirs --rc --rc-enable-metrics
+docker run --rm \
+    --pull always \
+    --volume /root/.config/rclone:/config/rclone \
+    --volume "$SOURCE_DIRECTORY/":/data/:ro \
+    ${DESTINATION_VOLUME_ARGUMENT} \
+    --env-file /etc/rclone.configpass \
+    --publish 5572:5572 \
+    rclone/rclone:latest \
+    sync /data/ "${DESTINATION_REMOTE}${TARGET_DIRECTORY}" --exclude aio-lockfile --create-empty-src-dirs --rc --rc-addr :5572 --rc-enable-metrics
 EXIT_CODE=$?
 END_TIME="$(date +%s)"
 
@@ -163,6 +174,6 @@ rm "$SOURCE_DIRECTORY/borg/aio-lockfile"
 kill $SCRAPING_PID
 wait $SCRAPING_PID
 # cleanup potentially leftover, uncomplete files
-rm "${TEXTFILE_COLLECTOR_DIR}/rclone-metrics-${DESTINATION_FILE_STRING}.prom."*
+rm -f "${TEXTFILE_COLLECTOR_DIR}/rclone-metrics-${DESTINATION_FILE_STRING}.prom."*
 
 exit $EXIT_CODE
