@@ -4,7 +4,7 @@
 
 Update BIOS, set desired settings. For Dell, find the Service Tag in the BIOS, find latest BIOS on their support website. Deactivate the lid switch. If this option is not available, a workaround in the OS must be found (maybe the lid options in `/etc/UPower/UPower.conf`).
 
-Download [Ubuntu Server 22.04](https://ubuntu.com/download/server). At the time of writing, this is the latest version for which a CIS Benchmark and [Ubuntu Security Guide](https://ubuntu.com/security/certifications/docs/usg/cis) exists.
+Download [Ubuntu Server 24](https://ubuntu.com/download/server). This guide was written for Ubuntu 22.04, but since has been upgraded to Ubuntu 24.
 
 Flash the ISO image to a USB stick. On Linux this can be achieved e.g. with dd, on Windows you can use [Rufus](https://ubuntu.com/tutorials/create-a-usb-stick-on-windows#1-overview).
 
@@ -249,6 +249,7 @@ DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_aide_check_aud
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_nftables_rules_permanent" # nftables rules *are* permanent, raises an alert though because docker creates transient ones
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_file_permissions_ungroupowned" # some files in the docker volumes/images are necessarily not owned by a local user; DO NOT apply a fix for this, as this messes with the permissions of the data in the nextcloud
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_no_files_unowned_by_user" # Dito.
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_service_systemd-journal-upload_enabled" # Currently there is no remote log server used in this project. Comment this line if you have one and want it checked that logs get uploaded to your server.
 
 for RULE in $DISABLED_RULES ; do
   ESCAPED_RULE=$(printf '%s\n' "$RULE" | sed -e 's/[]\/$*.^[]/\\&/g');

@@ -6,6 +6,7 @@ Create alerts files for host monitoring - memory, filesystem, CPU, temperature, 
 
 ```bash
 sudo apt install -y prometheus-node-exporter prometheus prometheus-alertmanager
+sudo systemctl disable openipmi # Is installed by the node exporter. Fails on the authors server and is not required by the activated collectors.
 
 sudo install -m 755 -d /etc/prometheus/alerts.d
 sudo install --mode=644 ./resources/prometheus/node-exporter.yml /etc/prometheus/alerts.d
@@ -19,8 +20,7 @@ sudo systemctl restart prometheus-node-exporter
 # Install service for starting smartctl-exporter and its rules
 sudo install --mode 644 ./resources/services/prometheus-smartctl-exporter.service /etc/systemd/system
 sudo systemctl daemon-reload
-sudo systemctl enable prometheus-smartctl-exporter
-sudo systemctl start prometheus-smartctl-exporter
+sudo systemctl enable --now prometheus-smartctl-exporter
 sudo wget -P /etc/prometheus/alerts.d https://raw.githubusercontent.com/samber/awesome-prometheus-alerts/master/dist/rules/s.m.a.r.t-device-monitoring/smartctl-exporter.yml
 sudo chmod o+r /etc/prometheus/alerts.d/smartctl-exporter.yml
 ```

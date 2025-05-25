@@ -59,6 +59,50 @@ As pointed out in the [AIO Readme](https://github.com/nextcloud/all-in-one?tab=r
 sudo docker exec --user www-data -it nextcloud-aio-nextcloud php occ your-command
 ```
 
+### Upgrade the Ubuntu release
+
+Perform these steps:
+
+- If possible, pause synchronization on all connected Nextcloud client apps, to reduce the risk of data loss if something goes severely wrong.
+- Stop Nextcloud using its AIO admin interface on http://\<your server\>:8080 and perform a Nextcloud backup.   
+You also might want to check the integrity of your backup (either using the provided functionality of the AIO interface or by using `borg check` on some other computer). This might take very long (order of hours, scales with the size of your backup), but it might be a good idea to check the integrity from time to time, to be sure the whole backup can be restored in case of failure.
+- Plug in your external backup disc and wait for the backup to complete.
+- Fully update your system with `sudo apt update && sudo apt upgrade`
+- You have to remount `/tmp` without `noexec` for the release upgrade to work: `sudo mount /tmp -o remount,exec`. This should be automatically corrected after the next reboot.
+- Start a new session with `tmux`, to be sure the terminal session does not disconnect while SSH is upgraded. You can exit the session with `Ctrl+B D`, and reopen a running session with `tmux attach`.
+- Upgrade the system using `sudo do-release-upgrade` and follow the guide.  
+If you get asked if you want to keep your locally edited configuration or the package maintainers version and have no idea what the change is and who mad it, it was probably the Ubuntu Security Guide while applying the CIS security profile. In these cases, install the package maintainers version (choose `Y`) since the configuration can be reapplied by USG later on. Some configuration though, like for nftables, Prometheus or the alertmanager, should be kept (choose `N`).
+- Reboot
+- Reenable/update any extra package repositories
+  - Docker:  
+    
+    ```sh
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+    $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    ```
+
+  - Grafana:  
+
+    ```sh
+    echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee /etc/apt/sources.list.d/grafana.list
+    sudo chmod o+r /etc/apt/sources.list.d/grafana.list
+    ```
+
+  - Check under `/etc/apt/sources.list.d/*` if any other repository requiring to be updated, update any old version codes. `ubuntu-cis...` will be updated automatically.
+- Do again `sudo apt update && sudo apt upgrade` and reboot again.
+- Perform a security audit using the steps in [Apply automatic fixes](01_install_os.md#apply-automatic-fixes) (including installation of the package), reboot, [audit](01_install_os.md#audit) and fix remaining issues manually.
+- Check that all systems are working normally:
+  - log in to your Grafana interface and look at the Node dashboard of your server
+  - if you have not yet received any alert from Prometheus, make sure you get them by triggering some alert for testing
+  - Create another Nextcloud backup in its AIO interface and check with `sudo journalctl -fu backup-cloud` that it gets synchronized to the cloud.
+  - Restart the Nextcloud containers, login to your Nextcloud. In case you stopped them, restart the sync clients.
+
+References:
+
+- https://documentation.ubuntu.com/server/how-to/software/upgrade-your-release/index.html
+
 ### Examining the Nextcloud database
 
 Run the following line to run a temporary instance of pgadmin:

@@ -1,11 +1,14 @@
 [Unit]
 Description=smartctl exporter service
-After=docker.service
+After=docker.service nss-lookup.target
+Requires=docker.service nss-lookup.target
+# although the service is ordered after nss-lookup, it still sometimes complains about a misbehaving DNS server at localhost:53
 
 [Service]
 Type=simple
 ExecStart=docker run --user root -p 9633:9633 --pull=always --privileged prometheuscommunity/smartctl-exporter
 Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
