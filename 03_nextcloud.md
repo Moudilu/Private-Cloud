@@ -132,7 +132,6 @@ sudo yq -i "
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_MOUNT = \"/srv/nc-data-no-bkp\" |
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_ENABLE_DRI_DEVICE = \"true\" |
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_ADDITIONAL_APKS=\"imagemagick bash ffmpeg libva-utils libva-vdpau-driver libva-intel-driver intel-media-driver mesa-va-gallium\" |
-  .services.nextcloud-aio-mastercontainer.environment.AIO_COMMUNITY_CONTAINERS=\"memories fail2ban\" |
   .services.nextcloud-aio-mastercontainer.environment.NEXTCLOUD_MEMORY_LIMIT=\"2048M\"
 " /opt/private-cloud/nextcloud.docker-compose.yaml
 ```
