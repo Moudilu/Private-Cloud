@@ -25,4 +25,10 @@ table inet filter {
                 # This includes container-container and container-world traffic 
                 iifname "nextcloud-aio" accept
         }
+
+        chain prerouting {
+                # Mark packets specially to be routed via other table, if their connection is marked.
+                # Makes them be routed via ifDMZ.
+                iifname "nextcloud-aio" ct mark 100 meta mark set 100
+        }
 }

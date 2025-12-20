@@ -277,54 +277,103 @@ sudo usg audit --tailoring-file /opt/private-cloud/tailor.xml --html-file /tmp/r
 sudo chmod o+r /tmp/report.html
 ```
 
-On your PC, download the file with `scp <User>@<Server>:/tmp/report.html` and verify there are no failed rules. Remove the report with `sudo rm /tmp/report.html`.
+On your PC, download the file with `scp <User>@<Server>:/tmp/report.html .` and verify there are no failed rules. Remove the report with `sudo rm /tmp/report.html`.
 
 ## Configure IP addresses
 
 The setup of your IP configuration might differ depending on your setup. You should already have been assigned an IPv4 address via DHCP. You might want to make it permanent in your router setting, or make this assignment static by deleting the file `/etc/netplan/00-installer-config.yaml` and adding a similar file like below for IPv4.
 
-Dynamic IPv6 assignments have been disabled by a rule in the CIS security profile, since listening to and applying IPv6 router announcements might be a security risk. The below snippet adds a static IPv6 address. You have to find your IPv6 prefix in your router (if you have any) and pick an address from this range.
+Configure a separate network interface for the internet-facing services. If you don't have VLANs in your local network, you may be able to just switch the line `vlans:` to `bridge:` instead (not tested).
 
 ```bash
 echo "Your current network configuration"
 ip a
 read -p "Enter the name of the network interface you want to configure an IPv6 address on (usually starts with eth or enp):" NETWORK_INTERFACE
-read -p "Your static IPv6 address with prefix length (e.g. '1f97:1bc1:e360:0195::4/64'): " IPV6_ADDRESS
-read -p "IPv6 address of your router within your network (e.g. '1f97:1bc1:e360:0195::1'): " IPV6_ROUTER
-sudo tee /etc/netplan/50-ipv6-manual-config.yaml <<EOF
+read -p "The VLAN ID for your DMZ network (exposing internet facing services): " DMZ_VLAN_ID
+if [[ -f "/etc/netplan/70-if-dmz.yaml" ]]; then
+  export IFDMZMAC=$(sudo yq .network.vlans.ifDMZ.macaddress /etc/netplan/70-if-dmz.yaml)
+else
+  export IFDMZMAC=$(hexdump -n5 -e'/5 "02" 5/1 ":%02X"' /dev/random)
+  echo "Generated a new MAC-address for the DMZ interface: ${IFDMZMAC}"
+fi
+
+sudo tee /etc/netplan/70-if-dmz.yaml <<EOF
 network:
   version: 2
-  ethernets:
-    $NETWORK_INTERFACE:
+  vlans:
+    ifDMZ:
       critical: true
-      addresses:
-        - "$IPV6_ADDRESS"
-      routes:
-        - to: default
-          via: $IPV6_ROUTER
+      id: $DMZ_VLAN_ID
+      link: $NETWORK_INTERFACE
+      # assign an own, locally administered unicast mac address to this interface, random but permanent
+      macaddress: $IFDMZMAC
+      dhcp4: yes
+      dhcp6: yes
+      dhcp4-overrides:
+        hostname: $(hostname)-dmz
+        # use this interface only if told explicitly, by default route via the other interface
+        route-metric: 500
+      dhcp6-overrides:
+        hostname: $(hostname)-dmz
+        # use this interface only if told explicitly, by default route via the other interface
+        route-metric: 500
+      ipv6-address-token: "::10"
+      # Route traffic on this interface in separate table. Maps the mark to the table.
+      routing-policy:
+        - from: 0.0.0.0/0
+          mark: 100
+          table: 100
 EOF
-sudo chmod 600 /etc/netplan/50-ipv6-manual-config.yaml
-sudo netplan try
-```
+sudo chmod 600 /etc/netplan/70-if-dmz.yaml
 
-Your SSH session might break after this point and you have to reconnect.
+# Create a script that copies the default route of if DMZ to a separate routing table
+sudo tee /etc/networkd-dispatcher/routable.d/50-ifdmz-routes <<'EOF'
+#!/bin/bash
 
-You might want to configure additional IP addresses, e. g. to run Nextcloud on a separate IP (and expose it to the internet) and have the other IP free to access other, local services on it.
+# Only run for the specific interface
+if [ "$IFACE" != "ifDMZ" ]; then
+    exit 0
+fi
 
-```bash
-read -p "Your secondary static IPv4 address with prefix length (e.g. '192.168.1.3/24'): " IPV4_ADDRESS_2
-read -p "Your secondary static IPv6 address with prefix length (e.g. '1f97:1bc1:e360:0195::4/64'): " IPV6_ADDRESS_2
-sudo tee /etc/netplan/60-additional-address-config.yaml <<EOF
-network:
-  version: 2
-  ethernets:
-    $NETWORK_INTERFACE:
-      critical: true
-      addresses:
-        - "$IPV4_ADDRESS_2"
-        - "$IPV6_ADDRESS_2"
+# 1. Get the Gateway IP associated with this interface from the main table
+GATEWAY=$(ip route show dev $IFACE default | awk '{print $3}')
+
+if [ -n "$GATEWAY" ]; then
+    # 2. Add the route to Table 100 with 'onlink'
+    # 'onlink' forces the kernel to send ARP requests for the gateway 
+    # directly on this interface, skipping the need for a subnet route.
+    ip route add default via $GATEWAY dev $IFACE table 100 onlink
+
+    # Set loose reverse path filtering for this interface
+    sysctl -w net.ipv4.conf."$IFACE".rp_filter=2
+    sysctl -w net.ipv4.conf.all.rp_filter=2
+    
+    logger "Defined PBR route for $IFACE via $GATEWAY on table 100 (onlink)"
+fi
 EOF
-sudo chmod 600 /etc/netplan/60-additional-address-config.yaml
+sudo chmod 755 /etc/networkd-dispatcher/routable.d/50-ifdmz-routes
+
+# Create a nftable rule that marks the packets on this interface specially to track them
+sudo tee /etc/inet-filter.rules.d/05-ifdmz-routing.rules <<EOF
+table inet filter {
+    chain prerouting {
+        type filter hook prerouting priority mangle; policy accept;
+
+        # 1. If a packet comes IN via ifDMZ, mark the CONNECTION (ct mark) with 100
+        iifname "ifDMZ" ct mark set 100
+
+        # 2. If a packet comes FROM Docker (e.g. docker0) and belongs to a connection 
+        #    that was previously marked 100, set the PACKET mark (meta mark) to 100.
+        #    This ensures the routing decision sees the mark.
+        #    YOU NEED TO ADD THIS FOR ANY SERVICE FROM WHICH YOU EXPOSE SERVICES TO ifDMZ!
+        # iifname "docker0" ct mark 100 meta mark set 100
+    }
+}
+EOF
+sudo chmod 600 /etc/inet-filter.rules.d/05-ifdmz-routing.rules
+
+sudo systemctl reload nftables.service
+sudo systemctl start networkd-dispatcher.service # only required the very first time, the service did not start if it did not have any script yet
 sudo netplan try
 ```
 

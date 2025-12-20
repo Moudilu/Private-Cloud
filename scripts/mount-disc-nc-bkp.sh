@@ -32,7 +32,7 @@ EOF
 $SUDO borg mount --foreground -o allow_other,ro,uid=$(id -u),gid=$(id -g) "$BORG_REPOSITORY/borg" "$BORG_MOUNTPOINT"
 
 # Clean up
-rm -d "$BORG_MOUNTPOINT"
+rm -fd "$BORG_MOUNTPOINT"
 echo "Cleaned up"
 echo "Press ENTER to exit"
 read

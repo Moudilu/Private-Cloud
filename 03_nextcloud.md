@@ -1,6 +1,6 @@
 # Install Nextcloud and backup services
 
-## Backup to coud & monitoring
+## Backup to cloud & monitoring
 
 ### Configure rclone
 
@@ -106,6 +106,7 @@ curl https://raw.githubusercontent.com/nextcloud/all-in-one/refs/heads/main/comp
   .services.nextcloud-aio-mastercontainer.networks = [\"nextcloud-aio\"] |
   del(.services.nextcloud-aio-mastercontainer.network_mode) |
   .services.nextcloud-aio-mastercontainer.ports =  [\"$NEXTCLOUD_IP:80:80\", \"8080:8080\"] |
+  .services.nextcloud-aio-mastercontainer.environment.APACHE_IP_BINDING = $NEXTCLOUD_IP |
   .services.nextcloud-aio-mastercontainer.ports.[] style=\"double\" |
   (.services.nextcloud-aio-mastercontainer.ports | key) line_comment=\"Omit port 8443, add it if you want to expose the AIO management interface on the internet with a certificate\" |
   .networks.nextcloud-aio = {
@@ -116,16 +117,7 @@ curl https://raw.githubusercontent.com/nextcloud/all-in-one/refs/heads/main/comp
 " | sudo tee /opt/private-cloud/nextcloud.docker-compose.yaml
 ```
 
-For any additional IP address you want to expose Nextcloud on, run the following snippet (e.g. an IPv6 address):
-
-```bash
-read -p 'Enter the additional IP address on which you want to expose this Nextcloud instance (e.g. "192.168.1.7" or "[1f97:1bc1:e360:0195::4]", IPv6 addresses must be enclosed in curly brackets!): ' NEXTCLOUD_IP
-sudo yq -i "
-  .services.nextcloud-aio-mastercontainer.ports +=  \"$NEXTCLOUD_IP:80:80\"
-" /opt/private-cloud/nextcloud.docker-compose.yaml
-```
-
-You might want to change the configuration to include some community containers. This additional configuration enables the memories and fail2ban containers. Also, it gives access to the directory `/srv/nc-data-no-bkp`, which can be mounted as external storage in nextcloud (it will not be included in any backup).
+This gives access to the directory `/srv/nc-data-no-bkp`, which can be mounted as external storage in nextcloud (it will not be included in any backup).
 
 ```bash
 sudo yq -i "
@@ -171,6 +163,8 @@ sudo docker exec --user www-data -it nextcloud-aio-nextcloud php occ config:syst
 ```
 
 ## Export metrics to Prometheus
+
+TODO: use existing community container instead: https://github.com/nextcloud/all-in-one/tree/main/community-containers/nextcloud-exporter
 
 https://github.com/xperimental/nextcloud-exporter
 
