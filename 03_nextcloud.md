@@ -88,6 +88,17 @@ If you want to hear a notification sound when the backup is complete, ensure tha
 
 You can add the dashboard with ID 21260 to Grafana.
 
+## Change sysctl values
+
+Increase the UDP buffer size of the kernel to 7.5MB. This should improve the performance of the QUIC protocol (see https://github.com/quic-go/quic-go/wiki/UDP-Buffer-Sizes):
+
+```bash
+sudo tee /etc/sysctl.d/10-udp-buffers.conf << EOF
+net.core.rmem_max=7500000
+net.core.wmem_max=7500000
+EOF
+```
+
 ## Install Nextcloud AIO
 
 Create the docker compose file to start the nextcloud AIO stack.
