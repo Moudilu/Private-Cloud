@@ -1,0 +1,15 @@
+[Unit]
+Description=Caddyserver as reverse-proxy for local services
+After=docker.service nss-lookup.target
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=docker compose -f /etc/local-caddy/compose.yaml up --pull=always
+ExecReload=docker compose -f /etc/local-caddy/compose.yaml exec -w /etc/caddy caddy caddy reload .
+ExecStop=docker compose -f /etc/local-caddy/compose.yaml down
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
