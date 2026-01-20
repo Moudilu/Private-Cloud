@@ -1,3 +1,7 @@
-music.mf.ulmer.ch {
-    reverse_proxy 192.168.0.20
+{
+	acme_dns acmedns /etc/caddy/acme-dns-credentials.json
+
+	metrics # enable prometheus endpoint
 }
+
+import ./sites-enabled/*

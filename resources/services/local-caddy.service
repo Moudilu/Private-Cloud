@@ -5,7 +5,7 @@ Requires=docker.service
 
 [Service]
 Type=simple
-ExecStart=docker compose -f /etc/local-caddy/compose.yaml up --pull=always
+ExecStart=docker compose -f /etc/local-caddy/compose.yaml up --build --pull=always
 ExecReload=docker compose -f /etc/local-caddy/compose.yaml exec -w /etc/caddy caddy caddy reload .
 ExecStop=docker compose -f /etc/local-caddy/compose.yaml down
 Restart=always

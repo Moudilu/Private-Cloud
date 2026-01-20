@@ -1,0 +1,19 @@
+table inet filter {
+        chain forward {
+                # Allow traffic to a port in the docker network
+                # Matches packets to a specified network (find with ip a)
+                # Dport is the destination port on the container!
+
+                # Public interface, open/forward these ports also in your internet
+                # facing route
+                # open the same ports also on UDP to support QUIC / HTTP/3
+                oifname "local-caddy" tcp dport 80 accept
+                oifname "local-caddy" tcp dport 443 accept
+                oifname "local-caddy" udp dport 80 accept
+                oifname "local-caddy" udp dport 443 accept
+
+                # Allow outgoing traffic, initiated by docker containers
+                # This includes container-container and container-world traffic 
+                iifname "local-caddy" accept
+        }
+}
