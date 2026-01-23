@@ -16,6 +16,9 @@ curl -X POST $ACME_SERVER/register | tee /dev/stderr | jq "{username, password, 
 Install a caddyserver acting as reverse-proxy with automatic https for services exposed on the local network.
 
 ```sh
+sudo docker network create --driver bridge --opt com.docker.network.bridge.name=local-caddy local-caddy # persistent network others can attach to
+
+# firewall rules
 sudo install -m 600 ./resources/nftables/30-local-caddy.rules /etc/inet-filter.rules.d
 sudo systemctl reload nftables
 

@@ -1,6 +1,6 @@
 table inet filter {
         chain input {
-            # Enable access to the dashboard
-            tcp dport 3000 accept
+            # Enable access to the dashboard from the reverse proxy
+            iifname "local-caddy" tcp dport 3000 accept
         }
 }

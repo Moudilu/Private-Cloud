@@ -16,6 +16,8 @@ services:
       - "192.168.0.67:443:443/udp"
     networks:
       - local-caddy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - /etc/local-caddy/conf:/etc/caddy:ro
       - caddy_data:/data
@@ -27,7 +29,6 @@ volumes:
 
 networks:
   local-caddy:
-    driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: local-caddy
-    name: local-caddy
+    external: true
+
+st.do
