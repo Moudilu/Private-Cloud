@@ -3,7 +3,7 @@ groups:
   rules:
   - alert: Nextcloud App Update available
     expr: nextcloud_apps_updates_available_total > 0
-    for: 1d
+    for: 1w
     labels:
       severity: warning
     annotations:
