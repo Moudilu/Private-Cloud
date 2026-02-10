@@ -12,10 +12,12 @@ services:
         COPY --from=builder /usr/bin/caddy /usr/bin/caddy
     ports:
       - "192.168.0.67:80:80"
+      - "192.168.0.67:80:80/udp"
       - "192.168.0.67:443:443"
       - "192.168.0.67:443:443/udp"
     networks:
       - local-caddy
+      - caddy-wan
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -30,5 +32,8 @@ volumes:
 networks:
   local-caddy:
     external: true
-
-st.do
+  caddy-wan:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: caddy-wan
+    name: caddy-wan
