@@ -297,6 +297,16 @@ else
   echo "Generated a new MAC-address for the DMZ interface: ${IFDMZMAC}"
 fi
 
+# Add a DHCP-assigned IPv6 address
+sudo install -m 600 /dev/stdin /etc/netplan/60-ipv6-dhcp.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    $NETWORK_INTERFACE:
+      critical: true
+      dhcp6: true
+EOF
+
 sudo tee /etc/netplan/70-if-dmz.yaml <<EOF
 network:
   version: 2
