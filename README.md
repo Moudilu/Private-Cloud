@@ -33,8 +33,9 @@ Follow these instructions in sequence:
 
 1. [Install the base operating system](./01_install_os.md)
 2. [Install a reverse-proxy for local services](./02_local_caddy.md)
-2. [Monitoring with Prometheus and Grafana](./03_monitoring.md)
-3. [Install Nextcloud and backup services](./04_nextcloud.md)
+3. [Monitoring with Prometheus and Grafana](./03_monitoring.md)
+4. [Install Nextcloud and backup services](./04_nextcloud.md)
+5. [Install Home Assistant](./05_homeassistant.md)
 
 It is highly recommended executing all maintenance steps indicated below now for the first time.
 

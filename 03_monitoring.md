@@ -88,4 +88,20 @@ sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
 ```
 
-Go to `http://<HOST>:3000`, login, add the dashboard with IDs 1860, 20204 by going to Dashboards > New > Import and entering the IDs into the provided field.
+## Add to the local reverse proxy
+
+In your DNS, add the entries pointing to the main IP of your server, including a CNAME entry `_acme-challenge.<domain>` pointing to your ACME-DNS fulldomain.
+
+```bash
+read -p "Enter the desired domain name for Grafana: " MONITOR_FQDN
+sudo install -m 644 /dev/stdin /etc/local-caddy/conf/sites-enabled/monitor << EOF
+${MONITOR_FQDN} {
+	reverse_proxy http://host.docker.internal:3000
+}
+EOF
+sudo systemctl reload local-caddy
+```
+
+# Setup
+
+Open the provided domain, login, add the dashboard with IDs 1860, 20204 by going to Dashboards > New > Import and entering the IDs into the provided field.

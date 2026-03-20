@@ -1,0 +1,50 @@
+services:
+  home-assistant:
+    container_name: home-assistant-server
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    networks:
+      home-assistant:
+        ipv4_address: 10.7.0.21
+      local-caddy:
+    volumes:
+      - home-assistant-config:/config
+      - backup:/config/backups
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      TZ: Europe/Zurich
+
+  music-assistant:
+    container_name: music-assistant-server
+    image: "ghcr.io/music-assistant/server:stable"
+    networks:
+      home-assistant:
+        ipv4_address: 10.7.0.20
+      local-caddy:
+    volumes:
+      - music-assistant-data:/data/
+      - /srv/nc-data-no-bkp/Media:/media
+    environment:
+      # Provide logging level as environment variable.
+      # default=info, possible=(critical, error, warning, info, debug)
+      - LOG_LEVEL=info
+
+
+networks:
+  home-assistant:
+    driver: ipvlan
+    driver_opts:
+      parent: enp0s31f6
+      # to enable mDNS (which advertises the various services to enable zeroconf), the container must receive Multicast packets
+      ipvlan_mode: l2
+    ipam:
+      config:
+        - subnet: 10.7.0.0/16
+          gateway: 10.7.0.1
+  # if you are using Caddy as a reverse proxy, connect to its network
+  local-caddy:
+    external: true
+
+volumes:
+  music-assistant-data:
+  home-assistant-config:
+  backup:
