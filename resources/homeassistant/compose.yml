@@ -28,6 +28,17 @@ services:
       # default=info, possible=(critical, error, warning, info, debug)
       - LOG_LEVEL=info
 
+  esp-home:
+    container_name: esp-home-server
+    image: "ghcr.io/esphome/esphome:stable"
+    volumes:
+      - esp-home-config:/config
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      home-assistant:
+        ipv4_address: 10.7.0.22
+      local-caddy:
+
 
 networks:
   home-assistant:
@@ -47,4 +58,5 @@ networks:
 volumes:
   music-assistant-data:
   home-assistant-config:
+  esp-home-config:
   backup:

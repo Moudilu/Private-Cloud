@@ -33,16 +33,22 @@ ${MA_FQDN} {
 	reverse_proxy http://music-assistant-server:8095
 }
 EOF
+read -p "Enter the desired domain name for ESPHome Builder: " ESP_FQDN
+sudo install -m 644 /dev/stdin /etc/local-caddy/conf/sites-enabled/esphome << EOF
+${ESP_FQDN} {
+	reverse_proxy http://esp-home-server:6052
+}
+EOF
 
 # S.t. the containers can resolve each other via their full name, add an alias to the caddy container on the local caddy network
-sudo yq -i '.services.caddy.networks.local-caddy.aliases = ["$HA_FQDN","$MA_FQDN$"]' /etc/local-caddy/compose.yaml
+sudo yq -i '.services.caddy.networks.local-caddy.aliases = ["$HA_FQDN","$MA_FQDN","$ESP_FQDN"]' /etc/local-caddy/compose.yaml
 
 sudo systemctl restart local-caddy
 ```
 
 ## Enable Prometheus
 
-Be aware that this might log some amount of (personal and sensitive) data. Generate a long-lived access token (see https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token) for authentication.
+It is possible to hook up Home Assistant to Prometheus, s.t. all (!) its data is logged & stored there.Be aware that this might log some amount of (personal and sensitive) data. Generate a long-lived access token (see https://developers.home-assistant.io/docs/auth_api/#long-lived-access-token) for authentication.
 
 ```bash
 read -sp "Enter the long lived access token from Home Assistant (create at the bottom of this page: https://${HA_FQDN}/profile/security): " HA_LLAT
