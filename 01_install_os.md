@@ -193,6 +193,16 @@ sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plug
 sudo apt install docker.io docker-buildx docker-compose-v2
 ```
 
+### Cleanup docker storage space regularly
+
+Docker automatically downloads new images, slowly filling up the storage space. Cleaning up old images is recommended and can be automated. Note that any container, images and build cache older than 30 days will be removed.
+
+```bash
+sudo install ./resources/services/docker-prune.service ./resources/services/docker-prune.timer /etc/systemd/system
+sudo systemctl daemon-reload
+sudo systemctl enable --now docker-prune.timer
+```
+
 ## Apply CIS security profile
 
 ### Manually fix remaining problems

@@ -6,4 +6,4 @@ Unit=reboot.target
 OnCalendar=Sunday 05:00
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=timers.target

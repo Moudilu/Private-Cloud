@@ -1,0 +1,8 @@
+[Unit]
+Description=removes old docker resources to free up space
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker system prune --all --force --filter "until=30d"
