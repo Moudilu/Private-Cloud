@@ -14,7 +14,7 @@ Create the following logical volumes, with suggested capacities on a 4TB drive (
 
 - /, 25G
 - /tmp, 10G
-- /var/lib/docker, 50G
+- /var/lib/docker, 100G
 - /srv/nc-bkp, 1.3T
 - /srv/nc-data, 1.3T
 - /srv/nc-data-no-bkp, 700G, optional
