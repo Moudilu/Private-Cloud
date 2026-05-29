@@ -56,7 +56,7 @@ fi
 # Clean up
 $SUDO fusermount -zu "$BORG_MOUNTPOINT" && rm -fd "$BORG_MOUNTPOINT" # since the mount is readonly, lazy unmount should be safe
 
-if [ -z "$REMOTE_BKP_MOUNTPOINT" ] ; then
+if [ -n "$REMOTE_BKP_MOUNTPOINT" ] ; then
     $SUDO fusermount -zu "$REMOTE_BKP_MOUNTPOINT" && rm -fd "$REMOTE_BKP_MOUNTPOINT"
 fi
 
