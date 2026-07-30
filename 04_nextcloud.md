@@ -215,3 +215,22 @@ sudo systemctl reload prometheus
 ```
 
 Add the dashboard with ID 20716 to Grafana.
+
+### Monitor internet reachability
+
+If you want to monitor that your Nextcloud instance can be reached from the public internet, deploy the script [scripts/metrics.php](./scripts/metrics.php) to a remote server, on the path /metrics.php (or change the location below), and add the following scrape_config (replace basic_auth and target) and reload Prometheus:
+
+```bash
+sudo tee -a /etc/prometheus/prometheus.yml <<EOF
+  - job_name: 'nextcloudremote'
+    metrics_path: '/metrics.php'
+    params:
+      url: ['${NC_FQDN}']
+    basic_auth:
+      username: prometheus
+      password: <replace>
+    static_configs:
+      - targets: ['your-server.com'] # The server hosting your PHP script
+EOF
+sudo systemctl reload prometheus
+```

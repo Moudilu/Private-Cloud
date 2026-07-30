@@ -25,6 +25,27 @@ groups:
     annotations:
       summary: Nextcloud is not running
       description: "Nextcloud on {{ $labels.instance }} is not reported to be up for at least two hours. If this is expected, you can ignore this message.\n  LABELS = {{ $labels }}"
+- name: Nextcloud external reachability
+  rules:
+  - alert: Nextcloud can't be reached from the internet
+    expr: 'nextcloudremotestatus_probe_success < 1 and on() nextcloud_up == 1'
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: Nextcloud can't be reached from the internet
+      description: "Nextcloud on {{ $labels.url }} "
+  - alert: WebsiteLoadTimeDegraded
+    # 1.5 represents 150%. 
+    # We compare the current metric to the average of the same metric over the last 1 week [1w]
+    expr: nextcloudremotestatus_probe_duration_seconds > 1.5 * avg_over_time(nextcloudremotestatus_probe_duration_seconds[1w]) and on(url) nextcloudremotestatus_probe_success == 1
+    # Only fire if the condition stays true for 5 consecutive minutes (prevents flapping from a single slow request)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Website load time degraded for {{ $labels.url }}"
+      description: "The current load time for {{ $labels.url }} is {{ $value | humanizeDuration }}, which is more than 150% of its 1-week average."
 - name: Nextcloud backup synchronization
   rules:
   - alert: Cloud backup not synchronized
