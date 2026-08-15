@@ -260,6 +260,7 @@ DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_nftables_rules
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_file_permissions_ungroupowned" # some files in the docker volumes/images are necessarily not owned by a local user; DO NOT apply a fix for this, as this messes with the permissions of the data in the nextcloud
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_no_files_unowned_by_user" # Dito.
 DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_service_systemd-journal-upload_enabled" # Currently there is no remote log server used in this project. Comment this line if you have one and want it checked that logs get uploaded to your server.
+DISABLED_RULES="$DISABLED_RULES xccdf_org.ssgproject.content_rule_sysctl_net_ipv4_conf_all_rp_filter" # Loose Reverse Path path filtering is required for the DMZ interface
 
 for RULE in $DISABLED_RULES ; do
   ESCAPED_RULE=$(printf '%s\n' "$RULE" | sed -e 's/[]\/$*.^[]/\\&/g');
