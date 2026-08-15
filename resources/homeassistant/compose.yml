@@ -34,6 +34,7 @@ services:
     volumes:
       - esp-home-config:/config
       - /etc/localtime:/etc/localtime:ro
+    env_file: credentials.env
     networks:
       home-assistant:
         ipv4_address: 10.7.0.22

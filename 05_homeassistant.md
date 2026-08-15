@@ -8,12 +8,17 @@ In the file [./resources/homeassistant/compose.yml](./resources/homeassistant/co
 TZ=$(timedatectl show --property=Timezone --value)
 sudo install -D -m 644 -t /etc/homeassistant ./resources/homeassistant/compose.yml
 sudo install -m 644 ./resources/services/homeassistant.service /etc/systemd/system
+
+# Secure the ESPHome dashboard with credentials
+read -p "Enter a username for accessing the ESPHome dashboard: " ESPHOME_USERNAME
+read -sp "Enter a password for accessing the ESPHome dashboard: " ESPHOME_PASSWORD
+sudo install -m 600 /dev/stdin /etc/homeassistant/credentials.env <<EOF
+ESPHOME_USERNAME=${ESPHOME_USERNAME}
+ESPHOME_PASSWORD=${ESPHOME_PASSWORD}
+EOF
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now homeassistant
-
-# To enable the reverse proxy, the config for Home Assistant http integration needs to be set. Also enables the prometheus integration for monitoring.
-sudo docker compose -f /etc/homeassistant/compose.yml exec home-assistant bash -c 'echo -e "\nhttp:\n  use_x_forwarded_for: true\n  trusted_proxies:\n    - $(dig +short caddy)\nprometheus:\n  namespace: homeassistant" >> /config/configuration.yaml'
-sudo docker compose -f /etc/homeassistant/compose.yml restart home-assistant
 ```
 
 ## Add to the local reverse proxy
