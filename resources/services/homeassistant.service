@@ -1,6 +1,7 @@
 [Unit]
 Description=Start Home Assistant
-After=docker.service nss-lookup.target local-caddy.service # make sure that local-caddy starts first and always gets the same IP address on the internal network
+# make sure that local-caddy starts first and always gets the same IP address on the internal network
+After=docker.service nss-lookup.target local-caddy.service
 Requires=docker.service nss-lookup.target local-caddy.service
 # although the service is ordered after nss-lookup, it still sometimes complains about a misbehaving DNS server at localhost:53
 

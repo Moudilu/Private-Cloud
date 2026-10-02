@@ -76,4 +76,28 @@ Open the page for Homeassistant. After initial setup, go to Settings > Integrati
 
 ## Home Assistant Backups
 
-In Home Assistant, go to Settings > System > Backups > Set up backups. Store the encryption key safely, enable the default settings. To add the Homeassistant backup to the automatic Nextcloud backup, it is recommended to add the line `homeassistant_backup` to the extra backup locations in the Nextcloud AIO interface (access it via the settings page of your Nextcloud admin user). It is recommended to test the backup afterwards.
+In Home Assistant, go to Settings > System > Backups > Set up backups. I recommend to 
+
+- backup at 1:45 (sometime before Nextcloud AIO backups run)
+- keep only one backup (since borg backup retains several versions)
+- disable encryption (since backups with Nextcloud AIO are trusted and encrypted with borg)
+
+To add the Homeassistant backup to the automatic Nextcloud backup, it is recommended to add the line `homeassistant_backup` to the extra backup locations in the Nextcloud AIO interface (access it via the settings page of your Nextcloud admin user). It is recommended to test the backup afterwards.
+
+## esphome backups
+
+You may want to backup the config files of esphome, but not the build/download directory.
+
+Open a shell in the esphome container with `sudo docker compose -f /etc/homeassistant/compose.yml exec -it esp-home bash`. In there, run the following script to enable automatically mirroring the config repository to a volume excluding the build directory. Alternatively, you can of course configure your git repository of choice as remote, have to handle authentication though.
+
+```bash
+sed -i "\|/secrets.yaml|d" /config/.gitignore # the backup is trusted, include secrets
+git clone --bare /config /backup/config.git # create a bare repository in backup
+# install a post commit hook that is run after every commit and pushes to the backup repo
+install -m 755 /dev/stdin /config/.git/hooks/post-commit << 'EOF'
+#!/bin/bash
+git push --mirror /backup/config.git
+EOF
+```
+
+To add the esphome backup to the automatic Nextcloud backup, it is recommended to add the line `homeassistant_esp-home-backup` to the extra backup locations in the Nextcloud AIO interface (access it via the settings page of your Nextcloud admin user). It is recommended to test the backup afterwards.

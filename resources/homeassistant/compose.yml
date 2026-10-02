@@ -33,6 +33,7 @@ services:
     image: "ghcr.io/esphome/esphome:stable"
     volumes:
       - esp-home-config:/config
+      - esp-home-backup:/backup
       - /etc/localtime:/etc/localtime:ro
     env_file: credentials.env
     networks:
@@ -60,4 +61,5 @@ volumes:
   music-assistant-data:
   home-assistant-config:
   esp-home-config:
+  esp-home-backup:
   backup:
