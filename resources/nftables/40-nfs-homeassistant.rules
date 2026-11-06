@@ -1,0 +1,6 @@
+table inet filter {
+        chain input {
+                # Allow NFS access, but only on the specified interface
+                iifname "virbr-isolated" tcp dport 2049 accept
+        }
+}
